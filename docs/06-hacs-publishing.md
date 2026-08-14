@@ -8,7 +8,7 @@ The integration should live in a public, dedicated GitHub repository. HACS expec
 custom_components/octi/
 ```
 
-That directory must contain all runtime files, including `manifest.json`. The repository should also include a clear README and a `hacs.json` with the integration name. A `brand/icon.png` asset should be added once the Octi maintainer grants permission to reuse the official artwork; until then, do not copy the upstream icon because Octi explicitly excludes its artwork from the GPL license. Keep the repository focused on this integration; do not bundle unrelated Home Assistant components.
+That directory must contain all runtime files, including `manifest.json`. The repository should also include a clear README, an explicit software license and a `hacs.json` with the integration name. A `brand/icon.png` asset should be added once the Octi maintainer grants permission to reuse the official artwork; until then, do not copy the upstream icon because Octi explicitly excludes its artwork from the GPL license. Keep the repository focused on this integration; do not bundle unrelated Home Assistant components.
 
 The Home Assistant manifest should include at least `domain`, `name`, `version`, `documentation`, `issue_tracker` and `codeowners`. Add `config_flow: true`, `integration_type: "hub"` and an accurate `iot_class` once the implementation exists.
 

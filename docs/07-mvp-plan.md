@@ -4,7 +4,7 @@ The work is deliberately split into slices that can be reviewed and tested witho
 
 ## Phase 0 — repository and protocol lock
 
-- Confirm the repository name, license and codeowners.
+- Confirm the repository name and codeowners; original repository code is licensed under MIT.
 - Add a fixture-fetch/verify script for the SHA in `fixture-lock.json`. **Done locally:** `scripts/verify_interop_fixtures.py`.
 - Record the upstream `manifest.json` digest and fail on unknown schema versions. **Done for the current pin.**
 - Decide the minimum Home Assistant version and supported Python/cryptography versions.

@@ -43,5 +43,5 @@ The first release should be read-only and intentionally narrow:
 - Whether the first public version supports `AES256_SIV` as well as `AES256_GCM_SIV`, or rejects legacy accounts with an actionable Config Flow error.
 - Exact Home Assistant entity mapping and device-class choices for each module field.
 - Minimum supported Home Assistant version and Python/cryptography compatibility strategy.
-- Repository license and ownership/codeowners.
+- Whether the MIT license needs an additional `NOTICE` file for any separately licensed assets or copied protocol material.
 - Whether the WebSocket client should be a small dependency-free implementation or use an existing Home Assistant-supported websocket library.

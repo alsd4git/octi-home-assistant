@@ -50,8 +50,8 @@ brand/icon.png
 hacs.json
 ```
 
-The current scaffold contains the pure protocol/crypto layer, an initial Config Flow, HTTP/WebSocket client, coordinator and read-only sensors. It is not release-ready yet: it still needs Home Assistant runtime validation, fuller module schema validation and CI packaging.
+The current scaffold contains the pure protocol/crypto layer, an initial Config Flow, HTTP/WebSocket client, coordinator and read-only sensors. It is not release-ready yet: it still needs broader Home Assistant version coverage, fuller module schema validation and CI packaging.
 
 ## License
 
-No license has been selected for this integration repository yet. Decide this before the first public release, taking into account the Octi protocol/client licenses and the HACS expectations.
+The original code in this repository is released under the [MIT License](LICENSE). This license does not grant permission to reuse Octi's names, logos, icons, mascots or other excluded upstream artwork; those assets remain subject to their respective rights and licenses.
