@@ -1,0 +1,19 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect Octi",
+        "description": "Paste the complete Octi linking payload. It contains credentials and must be treated as a secret.",
+        "data": {
+          "linking_payload": "Linking payload"
+        }
+      }
+    },
+    "error": {
+      "invalid_payload": "The linking payload is invalid.",
+      "unsupported_encryption": "This Octi encryption mode is not supported yet.",
+      "invalid_auth": "The Octi share code or credentials were rejected.",
+      "cannot_connect": "Unable to connect to Octi."
+    }
+  }
+}
