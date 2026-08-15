@@ -33,6 +33,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: OctiConfigEntry) -> bool
 
     try:
         await coordinator.async_config_entry_first_refresh()
+    except ConfigEntryAuthFailed:
+        await client.async_close()
+        raise
     except OctiAuthenticationError as err:
         await client.async_close()
         raise ConfigEntryAuthFailed("Octi credentials were rejected") from err
@@ -53,6 +56,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: OctiConfigEntry) -> boo
     """Unload an Octi config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        entry.runtime_data.coordinator.async_stop()
+        await entry.runtime_data.coordinator.async_stop()
         await entry.runtime_data.client.async_close()
     return unload_ok

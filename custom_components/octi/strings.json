@@ -7,6 +7,13 @@
         "data": {
           "linking_payload": "Linking payload"
         }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Octi",
+        "description": "Paste a new Octi linking payload for the same account and server.",
+        "data": {
+          "linking_payload": "Linking payload"
+        }
       }
     },
     "error": {

@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from contextlib import suppress
 from datetime import timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import OctiApiClient, OctiApiError, OctiAuthenticationError
@@ -71,8 +73,8 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         )
                         data["modules"].setdefault(device_id, {})[module_id] = result.value
             return data
-        except OctiAuthenticationError:
-            raise
+        except OctiAuthenticationError as err:
+            raise ConfigEntryAuthFailed("Octi credentials were rejected") from err
         except OctiApiError as err:
             raise UpdateFailed("Unable to update Octi") from err
 
@@ -82,10 +84,15 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._async_event_loop(), name="octi-websocket"
         )
 
-    def async_stop(self) -> None:
-        """Stop background event listening."""
-        if self._websocket_task:
-            self._websocket_task.cancel()
+    async def async_stop(self) -> None:
+        """Stop background event listening and await task cancellation."""
+        task = self._websocket_task
+        self._websocket_task = None
+        if task is None:
+            return
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
 
     async def _async_event_loop(self) -> None:
         delay = WS_RECONNECT_MIN_SECONDS
