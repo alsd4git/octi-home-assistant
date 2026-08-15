@@ -16,10 +16,11 @@ The first release should be read-only and intentionally narrow:
 
 1. A config flow accepts the Octi linking payload and validates its server, share code and keyset.
 2. The integration joins the account with a stable Home Assistant device identity.
-3. It discovers linked Octi devices and reads the core power, Wi-Fi and connectivity modules.
-4. It decrypts both account keyset modes covered by the upstream fixtures, or rejects the legacy mode explicitly if implementation sequencing requires that temporary limitation.
+3. It discovers linked Octi devices and reads the core power, Wi-Fi, connectivity and metadata modules.
+4. It decrypts both account keyset modes covered by the upstream fixtures.
 5. It listens to `/v1/ws` and performs a debounced refresh for `module_changed` events.
 6. It falls back to conditional HTTP requests on reconnect and at a conservative interval.
+7. It exposes optional clipboard and installed-app diagnostics when those modules are available.
 
 ## Non-goals for the MVP
 
@@ -40,8 +41,7 @@ The first release should be read-only and intentionally narrow:
 
 ## Open decisions
 
-- Whether the first public version supports `AES256_SIV` as well as `AES256_GCM_SIV`, or rejects legacy accounts with an actionable Config Flow error.
-- Exact Home Assistant entity mapping and device-class choices for each module field.
 - Minimum supported Home Assistant version and Python/cryptography compatibility strategy.
-- Whether the MIT license needs an additional `NOTICE` file for any separately licensed assets or copied protocol material.
-- Whether the WebSocket client should be a small dependency-free implementation or use an existing Home Assistant-supported websocket library.
+- Whether to add a dedicated Home Assistant diagnostics download endpoint after the MVP.
+- How to handle devices added or removed from the Octi account while Home Assistant is running.
+- Whether file transfer/blob support is worth the additional privacy and UX surface.

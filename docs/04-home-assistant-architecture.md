@@ -11,7 +11,7 @@ The Config Flow should accept the complete linking payload as a paste operation.
 5. perform one authenticated discovery request;
 6. create a config entry with a stable unique ID.
 
-Errors should be actionable: expired share code, malformed payload, unsupported legacy mode, TLS/network failure and account rejection should not collapse into one generic error.
+Errors should be actionable: expired share code, malformed payload, unsupported encryption mode, TLS/network failure and account rejection should not collapse into one generic error.
 
 ## Stored data
 
@@ -56,11 +56,11 @@ The integration is an Octi account hub (`integration_type: hub`). The local Home
 
 ## Writes and diagnostics
 
-There should be no write service in the MVP. Diagnostics may expose server host, connection state, last refresh and supported module names, but never credentials, keysets, Authorization headers or decrypted payloads.
+There is no write service in the MVP. The integration exposes diagnostic entities for last update, platform, client version, capabilities, metadata and (when available) clipboard/apps. It does not yet implement Home Assistant's dedicated diagnostics download endpoint. Credentials, keysets and Authorization headers must never be exposed; clipboard and app entities are explicitly sensitive.
 
 ## Test shape
 
 - Pure unit tests for linking, headers, crypto and event parsing.
 - `aiohttp`/mock transport tests for status codes, ETags, reconnects and rate-limit responses.
-- Home Assistant config-entry tests for setup, unload, reauth and duplicate configuration.
+- Home Assistant config-entry tests for setup, unload, reauth and duplicate configuration are still planned; the current automated suite focuses on pure protocol interoperability.
 - A small end-to-end test against a disposable/self-hosted Octi server only when a documented test fixture is available.

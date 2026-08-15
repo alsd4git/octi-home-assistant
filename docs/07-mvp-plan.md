@@ -1,6 +1,6 @@
 # MVP implementation plan
 
-The work is deliberately split into slices that can be reviewed and tested without a complete Home Assistant integration.
+The work was deliberately split into slices that could be reviewed and tested without a complete Home Assistant integration. The current repository contains the first read-only MVP; the remaining items below are hardening or release work.
 
 ## Phase 0 — repository and protocol lock
 
@@ -11,32 +11,32 @@ The work is deliberately split into slices that can be reviewed and tested witho
 
 ## Phase 1 — pure protocol package
 
-- Implement linking payload decode/validation.
-- Implement Octi headers and URL construction.
-- Implement module payload decrypt/decompress/JSON decode.
-- Implement both keyset modes, or a clear temporary legacy rejection.
-- Add vector tests before adding Home Assistant imports.
+- **Done:** Implement linking payload decode/validation.
+- **Done:** Implement Octi headers and URL construction.
+- **Done:** Implement module payload decrypt/decompress/JSON decode.
+- **Done:** Implement both keyset modes.
+- **Done:** Add vector tests before adding Home Assistant imports.
 
 ## Phase 2 — transport and events
 
-- Add an async HTTP client with timeouts, ETags and typed errors.
-- Add authenticated WebSocket parsing for `module_changed` events.
-- Add reconnect/backoff and a bounded periodic refresh fallback.
-- Test `204`, `304`, auth failures, malformed events and reconnects.
+- **Done:** Add an async HTTP client with timeouts, ETags and typed errors.
+- **Done:** Add authenticated WebSocket parsing for `module_changed` events.
+- **Done:** Add reconnect/backoff and a bounded periodic refresh fallback.
+- **Done for pure protocol paths:** Test `204`, `304`, auth failures, malformed events and reconnects.
 
 ## Phase 3 — Home Assistant integration
 
-- Add `manifest.json`, Config Flow, config-entry setup/unload and reauth.
-- Add one coordinator per entry.
-- Add device discovery and power/Wi-Fi/connectivity/metadata sensors.
-- Add defensive optional clipboard and installed-app diagnostics.
-- Add translations, diagnostics redaction and setup documentation.
+- **Done:** Add `manifest.json`, Config Flow, config-entry setup/unload and reauth.
+- **Done:** Add one coordinator per entry.
+- **Done:** Add device discovery and power/Wi-Fi/connectivity/metadata sensors.
+- **Done:** Add defensive optional clipboard and installed-app diagnostics.
+- **Done:** Add translations, diagnostics redaction and setup documentation.
 
 ## Phase 4 — release hardening
 
-- Run Hassfest, HACS validation, lint and tests in CI.
-- Test a clean custom-HACS install and an upgrade from the previous release.
-- Document revocation/relinking and known limitations.
+- **Done:** Add the validation workflow; Hassfest, Ruff, unit tests and fixture verification pass locally. HACS validation will run with the repository context in GitHub Actions.
+- **Pending:** Test a clean custom-HACS install and an upgrade from the previous release in a public repository.
+- **Done:** Document revocation/relinking and known limitations.
 - Create the first GitHub release and ask the Octi maintainer to link the integration from ecosystem documentation once interop tests pass.
 
 ## Later candidates

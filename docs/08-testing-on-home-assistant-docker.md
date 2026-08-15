@@ -102,4 +102,4 @@ Do not install extra native build tools or a separate Tink package manually in t
 
 - The integration has been exercised inside a complete Home Assistant Docker runtime; broader-version compatibility still needs CI coverage.
 - Dynamic discovery of devices added after the initial setup still needs hardening.
-- HACS metadata, CI and the brand asset are not ready for publication.
+- HACS metadata and CI are present. The brand asset/icon is intentionally deferred until after the MVP and permission review; default-catalog publication also waits for a public repository, release and brand review.
