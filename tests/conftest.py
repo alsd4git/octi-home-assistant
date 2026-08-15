@@ -13,6 +13,9 @@ custom_components = types.ModuleType("custom_components")
 custom_components.__path__ = [str(package_root)]
 sys.modules.setdefault("custom_components", custom_components)
 
-octi_package = types.ModuleType("custom_components.octi")
-octi_package.__path__ = [str(octi_root)]
-sys.modules.setdefault("custom_components.octi", octi_package)
+try:
+    import homeassistant  # noqa: F401
+except ModuleNotFoundError:
+    octi_package = types.ModuleType("custom_components.octi")
+    octi_package.__path__ = [str(octi_root)]
+    sys.modules.setdefault("custom_components.octi", octi_package)
