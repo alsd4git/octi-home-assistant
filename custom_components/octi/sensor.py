@@ -350,12 +350,16 @@ def _charge_speed(value: Any) -> str | None:
 
 
 def _battery_health_label(value: Any) -> str | None:
-    return {
-        1: "UNKNOWN",
-        2: "GOOD",
-        3: "OVERHEAT",
-        4: "DEAD",
-        5: "OVER_VOLTAGE",
-        6: "UNSPECIFIED_FAILURE",
-        7: "COLD",
-    }.get(value) if isinstance(value, int) else None
+    return (
+        {
+            1: "UNKNOWN",
+            2: "GOOD",
+            3: "OVERHEAT",
+            4: "DEAD",
+            5: "OVER_VOLTAGE",
+            6: "UNSPECIFIED_FAILURE",
+            7: "COLD",
+        }.get(value)
+        if isinstance(value, int)
+        else None
+    )

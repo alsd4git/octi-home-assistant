@@ -50,9 +50,10 @@ def test_build_device_info_labels_home_assistant_client() -> None:
 
 def test_clipboard_helpers_handle_empty_text_and_malformed_data() -> None:
     assert clipboard_value({"type": "EMPTY", "data": ""}) == "Empty"
-    assert clipboard_value(
-        {"type": "SIMPLE_TEXT", "data": base64.b64encode(b"hello").decode()}
-    ) == "hello"
+    assert (
+        clipboard_value({"type": "SIMPLE_TEXT", "data": base64.b64encode(b"hello").decode()})
+        == "hello"
+    )
     assert clipboard_value({"type": "SIMPLE_TEXT", "data": "not-base64"}) is None
     assert clipboard_attributes({"type": "EMPTY", "data": ""}) == {
         "type": "EMPTY",

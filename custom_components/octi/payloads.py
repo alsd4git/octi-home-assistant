@@ -24,9 +24,7 @@ def build_device_info(
     model = metadata.get("deviceName")
     if not isinstance(model, str) or not model:
         model = (
-            "Home Assistant"
-            if device.get("platform") == "home_assistant"
-            else device.get("label")
+            "Home Assistant" if device.get("platform") == "home_assistant" else device.get("label")
         )
     if isinstance(model, str) and model:
         info["model"] = model
