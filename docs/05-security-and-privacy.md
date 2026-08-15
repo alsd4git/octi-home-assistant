@@ -26,7 +26,7 @@ The main risks are:
 
 ## Credential lifecycle
 
-The linking payload includes enough material to access and write the account. Even though this integration is read-only, users should be told that the linked Home Assistant device is a real Octi account participant. Re-linking or revoking that device should be documented before release.
+The linking payload includes enough material to access and write the account. Even though this integration is read-only, users should be told that the linked Home Assistant device is a real Octi account participant. If credentials expire, Home Assistant can start the reauthentication flow with a fresh payload for the same account and server; revoking the Octi device still requires removing and linking the config entry again.
 
 ## User-facing wording
 
