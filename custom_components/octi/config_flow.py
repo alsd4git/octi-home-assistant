@@ -73,7 +73,14 @@ class OctiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_reauth(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
-        """Handle reauthentication for an existing config entry."""
+        """Start reauthentication for an existing config entry."""
+        del user_input
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Handle the reauthentication form for an existing config entry."""
         entry = self._get_reauth_entry()
         errors: dict[str, str] = {}
         if user_input is not None:

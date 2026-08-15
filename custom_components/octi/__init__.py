@@ -29,7 +29,7 @@ type OctiConfigEntry = ConfigEntry[OctiRuntimeData]
 async def async_setup_entry(hass: HomeAssistant, entry: OctiConfigEntry) -> bool:
     """Set up Octi from a config entry."""
     client = OctiApiClient.from_config_entry(hass, entry)
-    coordinator = OctiCoordinator(hass, client)
+    coordinator = OctiCoordinator(hass, client, entry)
 
     try:
         await coordinator.async_config_entry_first_refresh()

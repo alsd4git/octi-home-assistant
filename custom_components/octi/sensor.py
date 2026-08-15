@@ -7,7 +7,7 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.const import PERCENTAGE
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -68,45 +68,62 @@ async def async_setup_entry(
     entry: OctiConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the initial diagnostic sensors."""
-    del hass
+    """Set up diagnostic sensors and discover new Octi devices over time."""
     coordinator = entry.runtime_data.coordinator
-    entities: list[SensorEntity] = []
-    for device in coordinator.data.get("devices", []):
-        device_id = device.get("id")
-        if not isinstance(device_id, str):
-            continue
-        entities.extend(
-            [
-                OctiModuleSensor(coordinator, device_id, MODULE_POWER, "battery_percent"),
-                OctiModuleSensor(coordinator, device_id, MODULE_POWER, "status"),
-                OctiModuleSensor(coordinator, device_id, MODULE_WIFI, "currentWifi.ssid"),
-                OctiModuleSensor(coordinator, device_id, MODULE_CONNECTIVITY, "connectionType"),
-            ]
-        )
-        entities.extend(
-            OctiModuleSensor(coordinator, device_id, MODULE_POWER, field, suffix, label)
-            for suffix, label, field in _POWER_FIELDS
-        )
+    added_unique_ids: set[str] = set()
 
-        for suffix, label, field in _DEVICE_FIELDS:
-            if device.get(field) is not None:
-                entities.append(
-                    OctiDeviceMetadataSensor(coordinator, device_id, suffix, label, field)
-                )
+    @callback
+    def _async_add_new_entities() -> None:
+        entities = [
+            entity
+            for device in coordinator.data.get("devices", [])
+            if isinstance(device, dict) and isinstance(device.get("id"), str)
+            for entity in _entities_for_device(coordinator, device["id"])
+            if entity.unique_id not in added_unique_ids
+        ]
+        if not entities:
+            return
+        added_unique_ids.update(entity.unique_id for entity in entities if entity.unique_id)
+        async_add_entities(entities)
 
-        metadata = _module_data(coordinator, device_id, MODULE_META)
-        for suffix, label, field in _METADATA_FIELDS:
-            if metadata.get(field) is not None:
-                entities.append(OctiMetadataSensor(coordinator, device_id, suffix, label, field))
+    _async_add_new_entities()
+    entry.async_on_unload(coordinator.async_add_listener(_async_add_new_entities))
 
-        if _module_data_or_none(coordinator, device_id, MODULE_CLIPBOARD) is not None:
-            entities.append(OctiClipboardSensor(coordinator, device_id))
 
-        apps = _module_data_or_none(coordinator, device_id, MODULE_APPS)
-        if apps is not None and isinstance(apps.get("installedPackages"), list):
-            entities.append(OctiAppsSensor(coordinator, device_id))
-    async_add_entities(entities)
+def _entities_for_device(coordinator: OctiCoordinator, device_id: str) -> list[SensorEntity]:
+    """Build all entities currently supported by one Octi device."""
+    entities: list[SensorEntity] = [
+        OctiModuleSensor(coordinator, device_id, MODULE_POWER, "battery_percent"),
+        OctiModuleSensor(coordinator, device_id, MODULE_POWER, "status"),
+        OctiModuleSensor(coordinator, device_id, MODULE_WIFI, "currentWifi.ssid"),
+        OctiModuleSensor(coordinator, device_id, MODULE_CONNECTIVITY, "connectionType"),
+    ]
+    entities.extend(
+        OctiModuleSensor(coordinator, device_id, MODULE_POWER, field, suffix, label)
+        for suffix, label, field in _POWER_FIELDS
+    )
+
+    device = _device_record(coordinator, device_id)
+    entities.extend(
+        OctiDeviceMetadataSensor(coordinator, device_id, suffix, label, field)
+        for suffix, label, field in _DEVICE_FIELDS
+        if device.get(field) is not None
+    )
+
+    metadata = _module_data(coordinator, device_id, MODULE_META)
+    entities.extend(
+        OctiMetadataSensor(coordinator, device_id, suffix, label, field)
+        for suffix, label, field in _METADATA_FIELDS
+        if metadata.get(field) is not None
+    )
+
+    if _module_data_or_none(coordinator, device_id, MODULE_CLIPBOARD) is not None:
+        entities.append(OctiClipboardSensor(coordinator, device_id))
+
+    apps = _module_data_or_none(coordinator, device_id, MODULE_APPS)
+    if apps is not None and isinstance(apps.get("installedPackages"), list):
+        entities.append(OctiAppsSensor(coordinator, device_id))
+    return entities
 
 
 def _module_data(coordinator: OctiCoordinator, device_id: str, module_id: str) -> dict[str, Any]:

@@ -52,6 +52,7 @@ class OctiModuleValue:
     value: Any
     etag: str | None
     modified_at: str | None
+    not_modified: bool = False
 
 
 class OctiApiClient:
@@ -133,9 +134,14 @@ class OctiApiClient:
         response = await self._request("GET", url, headers=headers, allow_missing=optional)
         if response is None:
             return None
-        if response.status in {204, 304}:
+        if response.status == 204:
             response.release()
             return None
+        if response.status == 304:
+            etag = response.headers.get("ETag") or etag
+            modified_at = response.headers.get("X-Modified-At")
+            response.release()
+            return OctiModuleValue(None, etag, modified_at, True)
         body = await response.read()
         try:
             value = decrypt_module_payload(

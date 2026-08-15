@@ -8,6 +8,7 @@ from contextlib import suppress
 from datetime import timedelta
 from typing import Any
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -34,10 +35,13 @@ MODULES += (MODULE_META, MODULE_CLIPBOARD, MODULE_APPS)
 class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Fetch and cache Octi state for all entities in one config entry."""
 
-    def __init__(self, hass: HomeAssistant, client: OctiApiClient) -> None:
+    def __init__(
+        self, hass: HomeAssistant, client: OctiApiClient, config_entry: ConfigEntry
+    ) -> None:
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=config_entry,
             name="Octi",
             update_interval=timedelta(seconds=DEFAULT_REFRESH_INTERVAL_SECONDS),
         )
@@ -50,11 +54,23 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             devices = await self.client.async_get_devices()
             previous_modules = self.data.get("modules", {}) if self.data else {}
+            device_ids = {
+                device.get("id")
+                for device in devices
+                if isinstance(device, dict) and isinstance(device.get("id"), str)
+            }
             data: dict[str, Any] = {
                 "devices": devices,
                 "modules": {
-                    device_id: dict(modules) for device_id, modules in previous_modules.items()
+                    device_id: dict(modules)
+                    for device_id, modules in previous_modules.items()
+                    if device_id in device_ids
                 },
+            }
+            self._etags = {
+                (device_id, module_id): etag
+                for (device_id, module_id), etag in self._etags.items()
+                if device_id in device_ids
             }
             for device in devices:
                 device_id = device.get("id")
@@ -67,10 +83,14 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         etag=self._etags.get((device_id, module_id)),
                         optional=module_id in OPTIONAL_MODULES,
                     )
-                    if result is not None:
-                        self._etags[(device_id, module_id)] = result.etag or self._etags.get(
-                            (device_id, module_id), ""
-                        )
+                    if result is None:
+                        self._etags.pop((device_id, module_id), None)
+                        data["modules"].setdefault(device_id, {}).pop(module_id, None)
+                        continue
+                    self._etags[(device_id, module_id)] = result.etag or self._etags.get(
+                        (device_id, module_id), ""
+                    )
+                    if not result.not_modified:
                         data["modules"].setdefault(device_id, {})[module_id] = result.value
             return data
         except OctiAuthenticationError as err:
