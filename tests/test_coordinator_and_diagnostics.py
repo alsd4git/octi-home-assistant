@@ -114,6 +114,7 @@ async def test_sensor_setup_discovers_new_devices_and_optional_modules(hass) -> 
     assert any("battery_percent" in entity_id for entity_id in initial_ids)
     assert any(entity_id.startswith("device-2_") for entity_id in all_ids)
     assert "device-1_clipboard" in all_ids
+    await coordinator.async_shutdown()
 
 
 @pytest.mark.asyncio
