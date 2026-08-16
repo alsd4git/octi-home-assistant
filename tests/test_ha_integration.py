@@ -135,3 +135,28 @@ async def test_reauth_updates_credentials_and_keeps_device_id(
     assert result["reason"] == "reauth_successful"
     assert entry.data[CONF_DEVICE_ID] == "ha-device-1"
     assert entry.data[CONF_DEVICE_PASSWORD] == "password-2"
+
+
+@pytest.mark.asyncio
+async def test_duplicate_linking_payload_aborts_without_creating_entry(
+    hass, enable_custom_integrations
+) -> None:
+    async def fake_join(flow, linking, device_id=None):
+        flow._device_id = device_id or "ha-device-1"
+        return {"account": "account-1", "password": "password-1"}
+
+    with patch.object(OctiConfigFlow, "_async_join", fake_join):
+        first = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        first = await hass.config_entries.flow.async_configure(
+            first["flow_id"], {"linking_payload": _linking_payload()}
+        )
+
+        second = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        second = await hass.config_entries.flow.async_configure(
+            second["flow_id"], {"linking_payload": _linking_payload()}
+        )
+
+    assert first["type"] == "create_entry"
+    assert second["type"] == "abort"
+    assert second["reason"] == "already_configured"
+    assert len(hass.config_entries.async_entries(DOMAIN)) == 1
