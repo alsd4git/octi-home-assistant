@@ -41,7 +41,6 @@ The first release should be read-only and intentionally narrow:
 
 ## Open decisions
 
-- Minimum supported Home Assistant version and Python/cryptography compatibility strategy.
-- Whether to add a dedicated Home Assistant diagnostics download endpoint after the MVP.
-- How to handle devices added or removed from the Octi account while Home Assistant is running.
-- Whether file transfer/blob support is worth the additional privacy and UX surface.
+- How to handle cleanup of Home Assistant registry entries for devices removed from the Octi account.
+
+The current baseline is Home Assistant `2026.2.3` with Python `>=3.13.2`. It is pinned by the Home Assistant test dependency and documented here; compatibility with newer releases remains part of CI validation because the integration manifest does not support a minimum-version key.

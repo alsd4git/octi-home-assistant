@@ -48,7 +48,7 @@ Avoid one polling task per entity. One coordinator should serve all entities for
 
 ## Entities
 
-Sensors represent stable values from power, Wi-Fi and connectivity, plus the documented metadata module. Device grouping uses the Octi device ID and a deterministic Home Assistant identifier. Optional clipboard and installed-app modules are fetched defensively: `204`, `404` and absent payloads leave those entities out without failing the config entry.
+Sensors represent stable values from power, Wi-Fi and connectivity, plus the documented metadata module. Device grouping uses the Octi device ID and a deterministic Home Assistant identifier. Optional clipboard and installed-app modules are fetched defensively: `204` and `404` clear the cached value and leave the entity unavailable, while `304` preserves the previous value. A missing optional module never fails the config entry.
 
 Potential entities include battery level, charging state, Wi-Fi SSID/signal, connectivity status, device metadata, clipboard text and installed-app inventory. The power payload also exposes battery health/temperature, instantaneous and average current, charge/discharge estimates (`fullAt`, `emptyAt`, `fullSince`) and the derived charge speed. Clipboard and app data are diagnostic entities because they can contain sensitive information. File transfer remains a future capability and is intentionally not part of this read-only milestone.
 
@@ -56,11 +56,11 @@ The integration is an Octi account hub (`integration_type: hub`). The local Home
 
 ## Writes and diagnostics
 
-There is no write service in the MVP. The integration exposes diagnostic entities for last update, platform, client version, capabilities, metadata and (when available) clipboard/apps. It does not yet implement Home Assistant's dedicated diagnostics download endpoint. Credentials, keysets and Authorization headers must never be exposed; clipboard and app entities are explicitly sensitive.
+There is no write service in the MVP. The integration exposes diagnostic entities for last update, platform, client version, capabilities, metadata and (when available) clipboard/apps. It also implements Home Assistant's dedicated diagnostics download endpoint, which returns redacted metadata and module shapes without decrypted values. Credentials, keysets and Authorization headers must never be exposed; clipboard and app entities are explicitly sensitive.
 
 ## Test shape
 
 - Pure unit tests for linking, headers, crypto and event parsing.
 - `aiohttp`/mock transport tests for status codes, ETags, reconnects and rate-limit responses.
-- Home Assistant config-entry tests for setup, unload, reauth and duplicate configuration are still planned; the current automated suite focuses on pure protocol interoperability.
+- Home Assistant config-entry tests cover setup, unload and reauthentication; API status handling, coordinator invalidation, dynamic discovery and diagnostics redaction are covered with mocks. Duplicate-configuration coverage remains planned.
 - A small end-to-end test against a disposable/self-hosted Octi server only when a documented test fixture is available.

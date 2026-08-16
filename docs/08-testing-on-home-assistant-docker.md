@@ -100,6 +100,6 @@ Do not install extra native build tools or a separate Tink package manually in t
 
 ## Current limitations
 
-- The integration has been exercised inside a complete Home Assistant Docker runtime; broader-version compatibility still needs CI coverage.
-- Dynamic discovery of devices added after the initial setup still needs hardening.
+- The supported baseline is Home Assistant 2026.2.3; the test harness runs against that version while the live Docker host currently runs a newer release.
+- Dynamic discovery of devices added after the initial setup is implemented; registry cleanup for removed devices still needs hardening.
 - HACS metadata and CI are present. The brand asset/icon is intentionally deferred until after the MVP and permission review; default-catalog publication also waits for a public repository, release and brand review.

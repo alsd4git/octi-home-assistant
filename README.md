@@ -15,7 +15,9 @@ The first milestone is a read-only integration that can:
 - read-only power, Wi-Fi, connectivity and device metadata entities;
 - optional clipboard and installed-app diagnostic entities when Octi exposes those modules;
 - authenticated WebSocket refreshes with conditional HTTP polling as a safety net;
-- one Home Assistant device per linked Octi device, with the local Home Assistant client represented as a service device.
+- one Home Assistant device per linked Octi device, with the local Home Assistant client represented as a service device;
+- dynamic discovery of devices that appear after the initial setup;
+- a redacted Home Assistant diagnostics endpoint for troubleshooting.
 
 The integration does not write to Octi, transfer files or synchronize encrypted blobs. Clipboard and installed-app entities may contain sensitive information and should be treated accordingly.
 
