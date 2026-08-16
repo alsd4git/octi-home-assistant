@@ -34,7 +34,7 @@ jobs:
           comment: false
 
   tests:
-    name: Tests
+    name: Quality and protocol tests
     runs-on: ubuntu-latest
     container: python:3.13
     permissions:
@@ -51,3 +51,30 @@ jobs:
           uv run ruff check .
           uv run pytest -q
           uv run python scripts/verify_interop_fixtures.py
+
+  homeassistant-matrix:
+    name: Home Assistant ${{ matrix.homeassistant }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - homeassistant: "2026.2.3"
+            python: "3.13"
+            test_package: "0.13.316"
+          - homeassistant: "2026.8.2"
+            python: "3.14"
+            test_package: "0.13.356"
+    container: python:${{ matrix.python }}
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install uv
+        run: python -m pip install --disable-pip-version-check uv==0.9.26
+      - name: Run Home Assistant test suite
+        run: >-
+          uv run --no-project
+          --with pytest-homeassistant-custom-component==${{ matrix.test_package }}
+          pytest -q --timeout=30
