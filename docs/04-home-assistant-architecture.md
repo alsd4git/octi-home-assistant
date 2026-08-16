@@ -64,5 +64,5 @@ There is no write service in the MVP. The integration exposes diagnostic entitie
 
 - Pure unit tests for linking, headers, crypto and event parsing.
 - `aiohttp`/mock transport tests for status codes, ETags, reconnects and rate-limit responses.
-- Home Assistant config-entry tests cover setup, unload and reauthentication; API status handling, coordinator invalidation, dynamic discovery and diagnostics redaction are covered with mocks. Duplicate-configuration coverage remains planned.
+- Home Assistant config-entry tests cover setup, unload, reauthentication and duplicate-configuration handling; API status handling, coordinator invalidation, dynamic discovery and diagnostics redaction are covered with mocks.
 - A small end-to-end test against a disposable/self-hosted Octi server only when a documented test fixture is available.
