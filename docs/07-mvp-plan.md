@@ -7,7 +7,7 @@ The work was deliberately split into slices that could be reviewed and tested wi
 - Confirm the repository name and codeowners; original repository code is licensed under MIT.
 - Add a fixture-fetch/verify script for the SHA in `fixture-lock.json`. **Done locally:** `scripts/verify_interop_fixtures.py`.
 - Record the upstream `manifest.json` digest and fail on unknown schema versions. **Done for the current pin.**
-- **Done:** Set Home Assistant `2026.2.3` and Python `>=3.13.2` as the tested baseline.
+- **Done:** Set Home Assistant `2026.2.3` / Python 3.13 as the minimum tested baseline and add Home Assistant `2026.8.2` / Python 3.14 to the CI matrix.
 
 ## Phase 1 — pure protocol package
 
@@ -34,7 +34,7 @@ The work was deliberately split into slices that could be reviewed and tested wi
 
 ## Phase 4 — release hardening
 
-- **Done:** Add the validation workflow; Hassfest, Ruff, Home Assistant tests and fixture verification pass locally. HACS validation will run with the repository context in GitHub Actions.
+- **Done:** Add the validation workflow; Hassfest, Ruff, Home Assistant tests and fixture verification pass locally. CI tests both Home Assistant 2026.2.3 and 2026.8.2; HACS validation runs with the repository context in GitHub Actions.
 - **Pending:** Test a clean custom-HACS install and an upgrade from the previous release in a public repository.
 - **Done:** Document revocation/relinking and known limitations.
 - Create the first GitHub release and ask the Octi maintainer to link the integration from ecosystem documentation once interop tests pass.

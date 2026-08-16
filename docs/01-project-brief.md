@@ -43,4 +43,4 @@ The first release should be read-only and intentionally narrow:
 
 - Devices removed from the Octi account are not deleted automatically from the Home Assistant registry. Their entities become unavailable and users remove the registry entry manually when needed.
 
-The current baseline is Home Assistant `2026.2.3` with Python `>=3.13.2`. It is pinned by the Home Assistant test dependency and documented here; compatibility with newer releases remains part of CI validation because the integration manifest does not support a minimum-version key.
+The current minimum tested baseline is Home Assistant `2026.2.3` with Python `>=3.13.2`. Home Assistant `2026.8.2` is also covered by CI with Python 3.14. Intermediate `2026.x` releases are expected to work from the baseline but are not individually claimed as tested. The integration manifest does not support a minimum-version key, so this policy is documented and enforced through the test matrix.
