@@ -50,9 +50,11 @@ Avoid one polling task per entity. One coordinator should serve all entities for
 
 Sensors represent stable values from power, Wi-Fi and connectivity, plus the documented metadata module. Device grouping uses the Octi device ID and a deterministic Home Assistant identifier. Optional clipboard and installed-app modules are fetched defensively: `204` and `404` clear the cached value and leave the entity unavailable, while `304` preserves the previous value. A missing optional module never fails the config entry.
 
-Potential entities include battery level, charging state, Wi-Fi SSID/signal, connectivity status, device metadata, clipboard text and installed-app inventory. The power payload also exposes battery health/temperature, instantaneous and average current, charge/discharge estimates (`fullAt`, `emptyAt`, `fullSince`) and the derived charge speed. Clipboard and app data are diagnostic entities because they can contain sensitive information. File transfer remains a future capability and is intentionally not part of this read-only milestone.
+Entities include battery level, charging state, Wi-Fi SSID/signal, connectivity status, device metadata, clipboard text and installed-app inventory. The power payload also exposes battery health/temperature, instantaneous and average current, charge/discharge estimates (`fullAt`, `emptyAt`, `fullSince`) and the derived charge speed. Clipboard and app data are diagnostic entities because they can contain sensitive information. File transfer remains a future capability and is intentionally not part of this read-only milestone.
 
 The integration is an Octi account hub (`integration_type: hub`). The local Home Assistant client is represented as a service entry, while linked Android, desktop and browser peers remain normal devices; assigning every peer the Home Assistant `service` entry type would misrepresent physical endpoints. The devices dashboard's `Condizione` column is the registry's disabled state, so `—` means the device is enabled, not that Octi failed to provide an online condition. The last server-observed update is exposed as the `Last update` diagnostic sensor from `lastSeen`.
+
+When an Octi device disappears, its cached module data is removed and its entities become unavailable. Registry cleanup is intentionally manual: remove the stale device from the Home Assistant device page if desired.
 
 ## Writes and diagnostics
 

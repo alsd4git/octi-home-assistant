@@ -39,8 +39,8 @@ The first release should be read-only and intentionally narrow:
 - HACS validation and Home Assistant's Hassfest checks pass before the first release.
 - The README clearly labels the integration as community-maintained and read-only.
 
-## Open decisions
+## Current operational decisions
 
-- How to handle cleanup of Home Assistant registry entries for devices removed from the Octi account.
+- Devices removed from the Octi account are not deleted automatically from the Home Assistant registry. Their entities become unavailable and users remove the registry entry manually when needed.
 
 The current baseline is Home Assistant `2026.2.3` with Python `>=3.13.2`. It is pinned by the Home Assistant test dependency and documented here; compatibility with newer releases remains part of CI validation because the integration manifest does not support a minimum-version key.

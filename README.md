@@ -41,6 +41,10 @@ Once the repository is public, it can be added to HACS as a custom repository wi
 
 The linking payload contains account credentials and encryption key material. Treat it as a secret: do not put it in issues, screenshots, shared terminals or logs.
 
+### Removing a device
+
+If a device is removed from the Octi account, its Home Assistant entities become unavailable. The Home Assistant device-registry entry is intentionally not deleted automatically; remove it manually from the Octi device page under **Settings → Devices & services** when you want to clean it up.
+
 ## Validation and development
 
 The local development checks use `uv`:
