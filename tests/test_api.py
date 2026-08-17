@@ -59,3 +59,22 @@ async def test_module_304_preserves_the_cached_value() -> None:
 async def test_api_authentication_error_is_typed() -> None:
     with pytest.raises(OctiAuthenticationError):
         await _client(_Response(401)).async_get_devices()
+
+
+@pytest.mark.asyncio
+async def test_api_disables_http_redirects() -> None:
+    session = AsyncMock()
+    session.request.return_value = _Response(204)
+    client = OctiApiClient(
+        session=session,
+        server="https://octi.example",
+        account_id="account",
+        device_password="password",
+        device_id="device",
+        keyset=b"keyset",
+        keyset_type="AES256_GCM_SIV",
+    )
+
+    await client.async_get_module("target", "module", optional=True)
+
+    assert session.request.call_args.kwargs["allow_redirects"] is False

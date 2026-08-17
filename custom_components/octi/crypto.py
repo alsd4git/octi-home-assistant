@@ -3,13 +3,20 @@
 from __future__ import annotations
 
 import gzip
+import io
 import json
 from typing import Any
 
 from cryptography.exceptions import InvalidTag, UnsupportedAlgorithm
 from cryptography.hazmat.primitives.ciphers.aead import AESGCMSIV, AESSIV
 
-from .const import KEYSET_GCM_SIV, KEYSET_SIV
+from .const import (
+    KEYSET_GCM_SIV,
+    KEYSET_SIV,
+    MAX_MODULE_CIPHERTEXT_BYTES,
+    MAX_MODULE_COMPRESSED_BYTES,
+    MAX_MODULE_DECOMPRESSED_BYTES,
+)
 
 
 class OctiCryptoError(ValueError):
@@ -27,6 +34,8 @@ def decrypt_module_payload(
     """Decrypt, gunzip and decode one Octi module payload."""
     if not ciphertext:
         raise OctiCryptoError("The encrypted payload is empty")
+    if len(ciphertext) > MAX_MODULE_CIPHERTEXT_BYTES:
+        raise OctiCryptoError("The encrypted payload is too large")
     try:
         aad = f"{device_id}:{module_id}".encode()
         plaintext = _decrypt_payload(
@@ -35,7 +44,9 @@ def decrypt_module_payload(
             keyset_type=keyset_type,
             aad=aad,
         )
-        return json.loads(gzip.decompress(plaintext))
+        if len(plaintext) > MAX_MODULE_COMPRESSED_BYTES:
+            raise OctiCryptoError("The compressed payload is too large")
+        return json.loads(_decompress_gzip(plaintext, MAX_MODULE_DECOMPRESSED_BYTES))
     except (
         gzip.BadGzipFile,
         OSError,
@@ -46,6 +57,15 @@ def decrypt_module_payload(
         ValueError,
     ) as err:
         raise OctiCryptoError("The Octi payload could not be decrypted") from err
+
+
+def _decompress_gzip(data: bytes, max_size: int) -> bytes:
+    """Decompress gzip data without allowing unbounded output."""
+    with gzip.GzipFile(fileobj=io.BytesIO(data)) as stream:
+        decoded = stream.read(max_size + 1)
+    if len(decoded) > max_size:
+        raise OctiCryptoError("The decrypted payload is too large")
+    return decoded
 
 
 def _decrypt_payload(

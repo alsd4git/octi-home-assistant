@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import gzip
 
 import pytest
 
@@ -59,6 +60,22 @@ def test_invalid_keyset_is_not_exposed() -> None:
         decrypt_module_payload(
             b"ciphertext",
             keyset=base64.b64decode("eA=="),
+            keyset_type=KEYSET_GCM_SIV,
+            device_id="device",
+            module_id="module",
+        )
+
+
+def test_decrypt_rejects_gzip_payload_that_expands_too_far(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "custom_components.octi.crypto._decrypt_payload",
+        lambda *args, **kwargs: gzip.compress(b"x" * (8 * 1024 * 1024 + 1)),
+    )
+
+    with pytest.raises(OctiCryptoError, match="could not be decrypted"):
+        decrypt_module_payload(
+            b"ciphertext",
+            keyset=b"keyset",
             keyset_type=KEYSET_GCM_SIV,
             device_id="device",
             module_id="module",

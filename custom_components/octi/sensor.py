@@ -177,6 +177,11 @@ class _OctiSensor(CoordinatorEntity[OctiCoordinator], SensorEntity):
         """Keep the registry metadata current when the meta module changes."""
         return _device_info(self.coordinator, self._device_id)
 
+    @property
+    def available(self) -> bool:
+        """Only expose entities for devices still returned by Octi."""
+        return super().available and bool(_device_record(self.coordinator, self._device_id))
+
 
 class OctiModuleSensor(_OctiSensor):
     """Read one scalar field from a module payload."""
@@ -209,6 +214,13 @@ class OctiModuleSensor(_OctiSensor):
             and self._value_key != "charge_speed"
         ):
             self._attr_native_unit_of_measurement = "mA"
+
+    @property
+    def available(self) -> bool:
+        """Require the module to remain available after a refresh."""
+        return super().available and self._module_id in self.coordinator.data.get(
+            "modules", {}
+        ).get(self._device_id, {})
 
     @property
     def native_value(self) -> Any:
@@ -260,6 +272,13 @@ class OctiDeviceMetadataSensor(_OctiSensor):
             self._attr_device_class = SensorDeviceClass.TIMESTAMP
 
     @property
+    def available(self) -> bool:
+        """Require the discovery field to remain available."""
+        return super().available and self._field in _device_record(
+            self.coordinator, self._device_id
+        )
+
+    @property
     def native_value(self) -> Any:
         value = _device_record(self.coordinator, self._device_id).get(self._field)
         if self._field in {"lastSeen", "addedAt"}:
@@ -286,6 +305,13 @@ class OctiMetadataSensor(_OctiSensor):
         self._field = field
 
     @property
+    def available(self) -> bool:
+        """Require the metadata field to remain available."""
+        return super().available and self._field in _module_data(
+            self.coordinator, self._device_id, MODULE_META
+        )
+
+    @property
     def native_value(self) -> Any:
         return _module_data(self.coordinator, self._device_id, MODULE_META).get(self._field)
 
@@ -294,6 +320,7 @@ class OctiClipboardSensor(_OctiSensor):
     """Expose simple-text clipboard contents when the optional module is available."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_icon = "mdi:clipboard-text-outline"
 
     def __init__(self, coordinator: OctiCoordinator, device_id: str) -> None:
@@ -301,6 +328,15 @@ class OctiClipboardSensor(_OctiSensor):
 
     def _payload(self) -> dict[str, Any]:
         return _module_data(self.coordinator, self._device_id, MODULE_CLIPBOARD)
+
+    @property
+    def available(self) -> bool:
+        """Require clipboard data to remain available after a refresh."""
+        return (
+            super().available
+            and _module_data_or_none(self.coordinator, self._device_id, MODULE_CLIPBOARD)
+            is not None
+        )
 
     @property
     def native_value(self) -> str | None:
@@ -321,6 +357,7 @@ class OctiAppsSensor(_OctiSensor):
     """Expose the optional installed-app inventory as a count plus attributes."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_icon = "mdi:apps"
 
     def __init__(self, coordinator: OctiCoordinator, device_id: str) -> None:
@@ -328,6 +365,14 @@ class OctiAppsSensor(_OctiSensor):
 
     def _packages(self) -> list[Any]:
         return installed_packages(_module_data(self.coordinator, self._device_id, MODULE_APPS))
+
+    @property
+    def available(self) -> bool:
+        """Require installed-app data to remain available after a refresh."""
+        return (
+            super().available
+            and _module_data_or_none(self.coordinator, self._device_id, MODULE_APPS) is not None
+        )
 
     @property
     def native_value(self) -> int:

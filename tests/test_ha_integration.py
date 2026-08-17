@@ -99,6 +99,34 @@ async def test_authentication_failure_closes_client(hass) -> None:
     assert client.closed is True
 
 
+@pytest.mark.asyncio
+async def test_setup_failure_stops_runtime_and_closes_client(
+    hass, enable_custom_integrations
+) -> None:
+    entry = _entry()
+    client = _FakeClient()
+
+    with (
+        patch("custom_components.octi.OctiApiClient.from_config_entry", return_value=client),
+        patch.object(
+            OctiCoordinator,
+            "async_config_entry_first_refresh",
+            new_callable=AsyncMock,
+        ),
+        patch.object(
+            hass.config_entries,
+            "async_forward_entry_setups",
+            new_callable=AsyncMock,
+            side_effect=RuntimeError("sensor setup failed"),
+        ),
+    ):
+        with pytest.raises(RuntimeError, match="sensor setup failed"):
+            await async_setup_entry(hass, entry)
+
+    assert client.closed is True
+    assert entry.runtime_data is None
+
+
 def _linking_payload() -> str:
     payload = {
         "serverAddress": "https://octi.example",

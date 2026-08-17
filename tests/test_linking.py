@@ -72,3 +72,10 @@ def test_decode_rejects_invalid_payload(data: dict) -> None:
 def test_decode_rejects_plain_text() -> None:
     with pytest.raises(LinkingPayloadError):
         decode_linking_payload("not-a-payload")
+
+
+def test_decode_rejects_gzip_payload_that_expands_too_far() -> None:
+    with pytest.raises(LinkingPayloadError, match="too large"):
+        decode_linking_payload(
+            base64.b64encode(gzip.compress(b"x" * (1 * 1024 * 1024 + 1))).decode()
+        )

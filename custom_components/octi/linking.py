@@ -5,11 +5,17 @@ from __future__ import annotations
 import base64
 import binascii
 import gzip
+import io
 import json
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
-from .const import SUPPORTED_KEYSET_TYPES
+from .const import (
+    MAX_LINKING_PAYLOAD_BASE64_CHARS,
+    MAX_LINKING_PAYLOAD_COMPRESSED_BYTES,
+    MAX_LINKING_PAYLOAD_DECOMPRESSED_BYTES,
+    SUPPORTED_KEYSET_TYPES,
+)
 
 
 class LinkingPayloadError(ValueError):
@@ -31,12 +37,19 @@ def decode_linking_payload(payload: str) -> LinkingData:
     if not isinstance(payload, str) or not payload.strip():
         raise LinkingPayloadError("The linking payload is empty")
 
+    encoded_payload = payload.strip()
+    if len(encoded_payload) > MAX_LINKING_PAYLOAD_BASE64_CHARS:
+        raise LinkingPayloadError("The linking payload is too large")
+
     try:
-        compressed = base64.b64decode(payload.strip(), validate=True)
-        decoded = gzip.decompress(compressed)
+        compressed = base64.b64decode(encoded_payload, validate=True)
+        if len(compressed) > MAX_LINKING_PAYLOAD_COMPRESSED_BYTES:
+            raise LinkingPayloadError("The linking payload is too large")
+        decoded = _decompress_gzip(compressed, MAX_LINKING_PAYLOAD_DECOMPRESSED_BYTES)
         raw = json.loads(decoded)
     except (
         binascii.Error,
+        EOFError,
         gzip.BadGzipFile,
         OSError,
         UnicodeDecodeError,
@@ -74,6 +87,15 @@ def decode_linking_payload(payload: str) -> LinkingData:
         keyset_type=keyset_type,
         keyset=keyset,
     )
+
+
+def _decompress_gzip(data: bytes, max_size: int) -> bytes:
+    """Decompress gzip data without allowing unbounded output."""
+    with gzip.GzipFile(fileobj=io.BytesIO(data)) as stream:
+        decoded = stream.read(max_size + 1)
+    if len(decoded) > max_size:
+        raise LinkingPayloadError("The linking payload is too large")
+    return decoded
 
 
 def _is_valid_server(server: str) -> bool:

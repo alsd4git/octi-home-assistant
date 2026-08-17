@@ -191,7 +191,13 @@ class OctiApiClient:
     ) -> ClientResponse | None:
         request_headers = headers or (self._headers() if auth else {})
         try:
-            response = await self._session.request(method, url, headers=request_headers, timeout=20)
+            response = await self._session.request(
+                method,
+                url,
+                headers=request_headers,
+                timeout=20,
+                allow_redirects=False,
+            )
         except (TimeoutError, ClientError) as err:
             raise OctiApiError("Octi request failed") from err
         if response.status in {401, 403}:

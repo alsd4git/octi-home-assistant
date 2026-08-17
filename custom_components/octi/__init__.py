@@ -45,17 +45,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: OctiConfigEntry) -> bool
     except ConfigEntryNotReady:
         await client.async_close()
         raise
+    except Exception:
+        await client.async_close()
+        raise
 
     entry.runtime_data = OctiRuntimeData(client=client, coordinator=coordinator)
-    await coordinator.async_start()
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    try:
+        await coordinator.async_start()
+        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    except Exception:
+        await coordinator.async_stop()
+        await client.async_close()
+        entry.runtime_data = None
+        raise
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: OctiConfigEntry) -> bool:
     """Unload an Octi config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
+    unload_ok = False
+    try:
+        unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    finally:
         await entry.runtime_data.coordinator.async_stop()
         await entry.runtime_data.client.async_close()
     return unload_ok

@@ -21,6 +21,7 @@ from custom_components.octi.const import (
 )
 from custom_components.octi.coordinator import OctiCoordinator
 from custom_components.octi.diagnostics import async_get_config_entry_diagnostics
+from custom_components.octi.sensor import _entities_for_device
 from custom_components.octi.sensor import async_setup_entry as async_setup_sensor_entry
 
 ENTRY_DATA = {
@@ -114,6 +115,47 @@ async def test_sensor_setup_discovers_new_devices_and_optional_modules(hass) -> 
     assert any("battery_percent" in entity_id for entity_id in initial_ids)
     assert any(entity_id.startswith("device-2_") for entity_id in all_ids)
     assert "device-1_clipboard" in all_ids
+    await coordinator.async_shutdown()
+
+
+@pytest.mark.asyncio
+async def test_sensor_availability_tracks_removed_devices_and_modules(hass) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    coordinator = OctiCoordinator(hass, _SequenceClient(), entry)
+    coordinator.data = {
+        "devices": [{"id": "device-1"}],
+        "modules": {
+            "device-1": {
+                MODULE_POWER: {"status": "CHARGING"},
+                MODULE_CLIPBOARD: {"type": "SIMPLE_TEXT", "data": "secret"},
+            }
+        },
+    }
+
+    entities = _entities_for_device(coordinator, "device-1")
+    power = next(
+        entity
+        for entity in entities
+        if getattr(entity, "_module_id", None) == MODULE_POWER
+        and getattr(entity, "_field", None) == "status"
+    )
+    clipboard = next(entity for entity in entities if entity.unique_id == "device-1_clipboard")
+
+    assert power.available is True
+    assert clipboard.available is True
+    assert clipboard.entity_registry_enabled_default is False
+
+    coordinator.async_set_updated_data(
+        {"devices": [{"id": "device-1"}], "modules": {"device-1": {}}}
+    )
+    await hass.async_block_till_done()
+    assert power.available is False
+    assert clipboard.available is False
+
+    coordinator.async_set_updated_data({"devices": [], "modules": {}})
+    await hass.async_block_till_done()
+    assert power.available is False
     await coordinator.async_shutdown()
 
 
