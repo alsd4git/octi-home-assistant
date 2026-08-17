@@ -13,7 +13,7 @@ The first milestone is a read-only integration that can:
 - UI-based setup from an Octi linking payload;
 - local decryption of the supported Octi payload encryption modes;
 - read-only power, Wi-Fi, connectivity and device metadata entities;
-- optional clipboard and installed-app diagnostic entities when Octi exposes those modules;
+- optional clipboard and installed-app diagnostic entities when Octi exposes those modules; they are disabled by default because their contents can be sensitive;
 - authenticated WebSocket refreshes with conditional HTTP polling as a safety net;
 - one Home Assistant device per linked Octi device, with the local Home Assistant client represented as a service device;
 - dynamic discovery of devices that appear after the initial setup;
@@ -40,6 +40,8 @@ Once the repository is public, it can be added to HACS as a custom repository wi
 4. Restart or reload the integration if you update its files manually.
 
 The linking payload contains account credentials and encryption key material. Treat it as a secret: do not put it in issues, screenshots, shared terminals or logs.
+
+Clipboard and installed-app entities are opt-in. When Octi exposes those modules, enable the entities individually from Home Assistant's entity registry only if you accept that their decrypted values can be visible to the UI, API, automations and recorder.
 
 ### Removing a device
 

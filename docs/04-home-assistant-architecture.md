@@ -15,7 +15,7 @@ Errors should be actionable: expired share code, malformed payload, unsupported 
 
 ## Stored data
 
-Use the config entry, not YAML and not an ad-hoc file, for the account credentials and key material. The entry needs the server address, account ID, device password, Home Assistant device UUID, keyset type and keyset bytes (or the exact serialized representation needed by the crypto library). Redact these fields from diagnostics and logs.
+Use the config entry, not YAML and not an ad-hoc file, for the account credentials and key material. The entry needs the server address, account ID, device password, Home Assistant device UUID, keyset type and keyset bytes (or the exact serialized representation needed by the crypto library). Redact these fields from diagnostics and logs. Duplicate initial setup is rejected after the join returns the account ID; the linking payload does not expose that ID, and a keyset fingerprint is not documented as a stable account identifier, so a pre-join guard would be speculative.
 
 If Home Assistant's config-entry migration or credential helper offers a more protected storage path in the minimum supported version, use it and document the compatibility constraint.
 
@@ -50,7 +50,7 @@ Avoid one polling task per entity. One coordinator should serve all entities for
 
 Sensors represent stable values from power, Wi-Fi and connectivity, plus the documented metadata module. Device grouping uses the Octi device ID and a deterministic Home Assistant identifier. Optional clipboard and installed-app modules are fetched defensively: `204` and `404` clear the cached value and leave the entity unavailable, while `304` preserves the previous value. A missing optional module never fails the config entry.
 
-Entities include battery level, charging state, Wi-Fi SSID/signal, connectivity status, device metadata, clipboard text and installed-app inventory. The power payload also exposes battery health/temperature, instantaneous and average current, charge/discharge estimates (`fullAt`, `emptyAt`, `fullSince`) and the derived charge speed. Clipboard and app data are diagnostic entities because they can contain sensitive information. File transfer remains a future capability and is intentionally not part of this read-only milestone.
+Entities include battery level, charging state, Wi-Fi SSID/signal, connectivity status, device metadata, clipboard text and installed-app inventory. The power payload also exposes battery health/temperature, instantaneous and average current, charge/discharge estimates (`fullAt`, `emptyAt`, `fullSince`) and the derived charge speed. Clipboard and app entities are disabled by default and must be enabled individually because they can contain sensitive information. File transfer remains a future capability and is intentionally not part of this read-only milestone.
 
 The integration is an Octi account hub (`integration_type: hub`). The local Home Assistant client is represented as a service entry, while linked Android, desktop and browser peers remain normal devices; assigning every peer the Home Assistant `service` entry type would misrepresent physical endpoints. The devices dashboard's `Condizione` column is the registry's disabled state, so `—` means the device is enabled, not that Octi failed to provide an online condition. The last server-observed update is exposed as the `Last update` diagnostic sensor from `lastSeen`.
 
@@ -58,7 +58,7 @@ When an Octi device disappears, its cached module data is removed and its entiti
 
 ## Writes and diagnostics
 
-There is no write service in the MVP. The integration exposes diagnostic entities for last update, platform, client version, capabilities, metadata and (when available) clipboard/apps. It also implements Home Assistant's dedicated diagnostics download endpoint, which returns redacted metadata and module shapes without decrypted values. Credentials, keysets and Authorization headers must never be exposed; clipboard and app entities are explicitly sensitive.
+There is no write service in the MVP. The integration exposes diagnostic entities for last update, platform, client version, capabilities, metadata and (when available) clipboard/apps. Clipboard and app entities are disabled by default; enabling them explicitly opts into exposing decrypted sensitive values to Home Assistant's state store. The dedicated diagnostics download endpoint returns redacted metadata and module shapes without decrypted values. Credentials, keysets and Authorization headers must never be exposed.
 
 ## Test shape
 

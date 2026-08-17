@@ -18,7 +18,8 @@ The main risks are:
 - Prefer HTTPS/WSS. An `http` endpoint is accepted only when the linking payload explicitly supplies it; the integration never downgrades an HTTPS endpoint.
 - Never log Authorization, device password, keyset bytes, ciphertext or decrypted module contents.
 - Keep the integration read-only until the write protocol and user-consent model are independently reviewed.
-- Keep sensitive modules explicit and optional: clipboard and installed-app data are fetched only when Octi reports those module endpoints, never as a requirement for account setup. File/blob modules are not fetched.
+- Keep sensitive modules explicit and optional: clipboard and installed-app data are fetched only when Octi reports those module endpoints, never as a requirement for account setup. Their entities are disabled by default and require an explicit user opt-in before their decrypted values enter Home Assistant's state store. File/blob modules are not fetched.
+- Bound compressed and decompressed payload sizes before parsing them, including the linking payload and encrypted module responses.
 - Verify GCM-SIV associated data exactly as specified; do not silently retry with alternate AAD values.
 - Sanitize server URLs and avoid following arbitrary redirects where the HTTP client permits that control.
 - Redact secrets in Home Assistant diagnostics and Config Flow error context.
@@ -32,4 +33,4 @@ The linking payload includes enough material to access and write the account. Ev
 
 The setup flow and README should say plainly:
 
-> This community integration stores the Octi credentials needed to read your account. Home Assistant decrypts selected module values locally and exposes them as entities. The current release is read-only: clipboard and installed-app data may be exposed as diagnostic entities when those optional modules are available, while file transfer and blob synchronisation are not implemented.
+> This community integration stores the Octi credentials needed to read your account. Home Assistant decrypts selected module values locally and exposes them as entities. The current release is read-only: clipboard and installed-app entities are discovered only when those optional modules are available and are disabled by default, while file transfer and blob synchronisation are not implemented.
