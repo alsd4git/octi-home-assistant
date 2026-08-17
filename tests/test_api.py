@@ -6,23 +6,42 @@ import pytest
 
 from custom_components.octi.api import (
     OctiApiClient,
+    OctiApiError,
     OctiAuthenticationError,
 )
+from custom_components.octi.const import MAX_JSON_RESPONSE_BYTES, MAX_MODULE_CIPHERTEXT_BYTES
+
+
+class _Content:
+    def __init__(self, body: bytes) -> None:
+        self.body = body
+
+    async def iter_chunked(self, size: int):
+        for offset in range(0, len(self.body), size):
+            yield self.body[offset : offset + size]
 
 
 class _Response:
-    def __init__(self, status: int, *, headers: dict[str, str] | None = None) -> None:
+    def __init__(
+        self,
+        status: int,
+        *,
+        headers: dict[str, str] | None = None,
+        body: bytes = b"{}",
+    ) -> None:
         self.status = status
         self.headers = headers or {}
+        self.content = _Content(body)
+        self.released = False
 
     async def read(self) -> bytes:
-        return b""
+        return self.content.body
 
     async def json(self) -> dict[str, object]:
         return {}
 
     def release(self) -> None:
-        pass
+        self.released = True
 
 
 def _client(response: _Response) -> OctiApiClient:
@@ -78,3 +97,33 @@ async def test_api_disables_http_redirects() -> None:
     await client.async_get_module("target", "module", optional=True)
 
     assert session.request.call_args.kwargs["allow_redirects"] is False
+
+
+@pytest.mark.asyncio
+async def test_module_body_is_rejected_before_decryption_when_too_large() -> None:
+    response = _Response(
+        200,
+        headers={"Content-Length": str(MAX_MODULE_CIPHERTEXT_BYTES + 1)},
+    )
+    with pytest.raises(OctiApiError, match="oversized"):
+        await _client(response).async_get_module("target", "module")
+    assert response.released is True
+
+
+@pytest.mark.asyncio
+async def test_module_body_stream_is_stopped_at_limit() -> None:
+    response = _Response(200, body=b"x" * (MAX_MODULE_CIPHERTEXT_BYTES + 1))
+    with pytest.raises(OctiApiError, match="oversized"):
+        await _client(response).async_get_module("target", "module")
+    assert response.released is True
+
+
+@pytest.mark.asyncio
+async def test_json_body_is_rejected_before_parsing_when_too_large() -> None:
+    response = _Response(
+        200,
+        headers={"Content-Length": str(MAX_JSON_RESPONSE_BYTES + 1)},
+    )
+    with pytest.raises(OctiApiError, match="oversized"):
+        await _client(response).async_get_devices()
+    assert response.released is True

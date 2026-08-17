@@ -21,6 +21,8 @@ from .const import (
     CONF_KEYSET,
     CONF_KEYSET_TYPE,
     CONF_SERVER,
+    MAX_JSON_RESPONSE_BYTES,
+    MAX_MODULE_CIPHERTEXT_BYTES,
     OCTI_LABEL,
     OCTI_PLATFORM,
     OCTI_VERSION,
@@ -142,7 +144,7 @@ class OctiApiClient:
             modified_at = response.headers.get("X-Modified-At")
             response.release()
             return OctiModuleValue(None, etag, modified_at, True)
-        body = await response.read()
+        body = await _read_limited_body(response, MAX_MODULE_CIPHERTEXT_BYTES)
         try:
             value = decrypt_module_payload(
                 body,
@@ -215,9 +217,35 @@ class OctiApiClient:
 
 async def _json_response(response: ClientResponse) -> dict[str, Any] | list[Any]:
     try:
-        payload = await response.json()
-    except (ClientError, json.JSONDecodeError) as err:
+        payload = json.loads(await _read_limited_body(response, MAX_JSON_RESPONSE_BYTES))
+    except (ClientError, UnicodeDecodeError, json.JSONDecodeError) as err:
         raise OctiApiError("Octi returned invalid JSON") from err
     if not isinstance(payload, (dict, list)):
         raise OctiApiError("Octi returned an invalid JSON response")
     return payload
+
+
+async def _read_limited_body(response: ClientResponse, max_bytes: int) -> bytes:
+    """Read a response body in bounded chunks."""
+    content_length = response.headers.get("Content-Length")
+    if content_length is not None:
+        try:
+            declared_length = int(content_length)
+        except ValueError:
+            declared_length = None
+        if declared_length is not None and declared_length > max_bytes:
+            response.release()
+            raise OctiApiError("Octi returned an oversized response")
+
+    chunks: list[bytes] = []
+    total = 0
+    try:
+        async for chunk in response.content.iter_chunked(64 * 1024):
+            total += len(chunk)
+            if total > max_bytes:
+                response.release()
+                raise OctiApiError("Octi returned an oversized response")
+            chunks.append(chunk)
+    except ClientError as err:
+        raise OctiApiError("Octi response could not be read") from err
+    return b"".join(chunks)

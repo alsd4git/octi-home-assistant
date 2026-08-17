@@ -11,7 +11,7 @@ from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntryState
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.octi import async_setup_entry
+from custom_components.octi import OctiRuntimeData, async_setup_entry, async_unload_entry
 from custom_components.octi.api import OctiAuthenticationError
 from custom_components.octi.config_flow import OctiConfigFlow
 from custom_components.octi.const import (
@@ -77,6 +77,28 @@ async def test_setup_and_unload_closes_client(hass, enable_custom_integrations) 
 
         assert await hass.config_entries.async_unload(entry.entry_id)
         assert client.closed is True
+
+
+@pytest.mark.asyncio
+async def test_unload_failure_keeps_runtime_running(hass) -> None:
+    entry = _entry()
+    client = _FakeClient()
+    coordinator = OctiCoordinator(hass, client, entry)
+    entry.runtime_data = OctiRuntimeData(client=client, coordinator=coordinator)
+
+    with (
+        patch.object(
+            hass.config_entries,
+            "async_unload_platforms",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
+        patch.object(coordinator, "async_stop", new_callable=AsyncMock) as stop,
+    ):
+        assert await async_unload_entry(hass, entry) is False
+
+    stop.assert_not_awaited()
+    assert client.closed is False
 
 
 @pytest.mark.asyncio

@@ -63,10 +63,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: OctiConfigEntry) -> bool
 
 async def async_unload_entry(hass: HomeAssistant, entry: OctiConfigEntry) -> bool:
     """Unload an Octi config entry."""
-    unload_ok = False
-    try:
-        unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    finally:
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unload_ok:
         await entry.runtime_data.coordinator.async_stop()
         await entry.runtime_data.client.async_close()
     return unload_ok
