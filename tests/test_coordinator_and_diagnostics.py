@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 from collections.abc import Mapping
+from unittest.mock import patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -86,6 +87,24 @@ async def test_coordinator_clears_missing_values_and_preserves_304(hass) -> None
     client.refresh = 2
     third = await coordinator._async_update_data()
     assert "device-1" not in third["modules"]
+
+
+@pytest.mark.asyncio
+async def test_websocket_listener_is_started_as_background_task(hass) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    coordinator = OctiCoordinator(hass, _SequenceClient(), entry)
+
+    with patch.object(
+        hass,
+        "async_create_background_task",
+        wraps=hass.async_create_background_task,
+    ) as create_background_task:
+        await coordinator.async_start()
+
+    create_background_task.assert_called_once()
+    assert create_background_task.call_args.kwargs["name"] == "octi-websocket"
+    await coordinator.async_stop()
 
 
 @pytest.mark.asyncio

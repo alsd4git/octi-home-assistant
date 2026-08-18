@@ -100,7 +100,7 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def async_start(self) -> None:
         """Start the event listener after the first successful refresh."""
-        self._websocket_task = self.hass.async_create_task(
+        self._websocket_task = self.hass.async_create_background_task(
             self._async_event_loop(), name="octi-websocket"
         )
 
