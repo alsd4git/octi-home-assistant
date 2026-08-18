@@ -16,6 +16,7 @@ from custom_components.octi.const import (
     CONF_KEYSET_TYPE,
     CONF_SERVER,
     DOMAIN,
+    MODULE_APPS,
     MODULE_CLIPBOARD,
     MODULE_POWER,
 )
@@ -156,6 +157,36 @@ async def test_sensor_availability_tracks_removed_devices_and_modules(hass) -> N
     coordinator.async_set_updated_data({"devices": [], "modules": {}})
     await hass.async_block_till_done()
     assert power.available is False
+    await coordinator.async_shutdown()
+
+
+@pytest.mark.asyncio
+async def test_apps_sensor_exposes_only_the_count(hass) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    coordinator = OctiCoordinator(hass, _SequenceClient(), entry)
+    coordinator.data = {
+        "devices": [{"id": "device-1"}],
+        "modules": {
+            "device-1": {
+                MODULE_APPS: {
+                    "installedPackages": [
+                        {"packageName": "com.example.one"},
+                        {"packageName": "com.example.two"},
+                    ]
+                }
+            }
+        },
+    }
+
+    apps = next(
+        entity
+        for entity in _entities_for_device(coordinator, "device-1")
+        if entity.unique_id == "device-1_apps"
+    )
+    assert apps.native_value == 2
+    assert apps.extra_state_attributes is None
+    assert apps.entity_registry_enabled_default is False
     await coordinator.async_shutdown()
 
 

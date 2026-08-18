@@ -27,7 +27,6 @@ from .payloads import (
     build_device_info,
     clipboard_attributes,
     clipboard_value,
-    installed_packages,
 )
 
 _METADATA_FIELDS = (
@@ -354,7 +353,7 @@ class OctiClipboardSensor(_OctiSensor):
 
 
 class OctiAppsSensor(_OctiSensor):
-    """Expose the optional installed-app inventory as a count plus attributes."""
+    """Expose the optional installed-app inventory as a count."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_entity_registry_enabled_default = False
@@ -362,9 +361,6 @@ class OctiAppsSensor(_OctiSensor):
 
     def __init__(self, coordinator: OctiCoordinator, device_id: str) -> None:
         super().__init__(coordinator, device_id, "apps", "Installed apps")
-
-    def _packages(self) -> list[Any]:
-        return installed_packages(_module_data(self.coordinator, self._device_id, MODULE_APPS))
 
     @property
     def available(self) -> bool:
@@ -376,11 +372,10 @@ class OctiAppsSensor(_OctiSensor):
 
     @property
     def native_value(self) -> int:
-        return len(self._packages())
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        return {"installed_packages": self._packages()}
+        packages = _module_data(self.coordinator, self._device_id, MODULE_APPS).get(
+            "installedPackages"
+        )
+        return len(packages) if isinstance(packages, list) else 0
 
 
 def _field_label(field: str) -> str:
