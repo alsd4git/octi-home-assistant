@@ -20,12 +20,12 @@ The first release should be read-only and intentionally narrow:
 4. It decrypts both account keyset modes covered by the upstream fixtures.
 5. It listens to `/v1/ws` and performs a debounced refresh for `module_changed` events.
 6. It falls back to conditional HTTP requests on reconnect and at a conservative interval.
-7. It exposes optional clipboard and installed-app diagnostics when those modules are available.
+7. It exposes optional clipboard and installed-app count diagnostics when those modules are available.
 
 ## Non-goals for the MVP
 
 - Mutating Octi state or exposing write services.
-- File contents, file transfer and other write-oriented or high-risk modules. Clipboard contents and installed-app inventory are optional read-only diagnostics and must remain clearly marked as sensitive.
+- File contents, file transfer and other write-oriented or high-risk modules. Clipboard contents and installed-app count are optional read-only diagnostics and must remain clearly marked as sensitive.
 - Streaming blob encryption/decryption.
 - Reimplementing account management or inventing a new linking format.
 - Claiming official Home Assistant or official Octi support.

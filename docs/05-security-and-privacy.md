@@ -33,4 +33,4 @@ The linking payload includes enough material to access and write the account. Ev
 
 The setup flow and README should say plainly:
 
-> This community integration stores the Octi credentials needed to read your account. Home Assistant decrypts selected module values locally and exposes them as entities. The current release is read-only: clipboard and installed-app entities are discovered only when those optional modules are available and are disabled by default, while file transfer and blob synchronisation are not implemented.
+> This community integration stores the Octi credentials needed to read your account. Home Assistant decrypts selected module values locally and exposes them as entities. The current release is read-only: clipboard and installed-app count entities are discovered only when those optional modules are available and are disabled by default; the full app inventory is not persisted in entity attributes. File transfer and blob synchronisation are not implemented.

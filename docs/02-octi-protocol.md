@@ -58,7 +58,7 @@ Initial module IDs:
 | Connectivity | `eu.darken.octi.module.core.connectivity` |
 | Metadata | `eu.darken.octi.module.core.meta` |
 
-The integration fetches clipboard and installed-app modules only as optional, read-only diagnostics when the server exposes them. File-transfer/blob modules remain out of scope until their payloads and Home Assistant UX have an independent design and fixture suite.
+The integration fetches clipboard and installed-app modules only as optional, read-only diagnostics when the server exposes them. Home Assistant exposes the installed-app module as a count and does not persist the full inventory in entity attributes. File-transfer/blob modules remain out of scope until their payloads and Home Assistant UX have an independent design and fixture suite.
 
 ## WebSocket updates
 

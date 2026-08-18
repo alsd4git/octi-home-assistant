@@ -29,7 +29,7 @@ The work was deliberately split into slices that could be reviewed and tested wi
 - **Done:** Add `manifest.json`, Config Flow, config-entry setup/unload and reauth.
 - **Done:** Add one coordinator per entry.
 - **Done:** Add device discovery and power/Wi-Fi/connectivity/metadata sensors.
-- **Done:** Add defensive optional clipboard and installed-app diagnostics.
+- **Done:** Add defensive optional clipboard diagnostics and installed-app count diagnostics.
 - **Done:** Add translations, diagnostics redaction and setup documentation.
 
 ## Phase 4 — release hardening

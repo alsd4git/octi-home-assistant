@@ -13,13 +13,13 @@ The first milestone is a read-only integration that can:
 - UI-based setup from an Octi linking payload;
 - local decryption of the supported Octi payload encryption modes;
 - read-only power, Wi-Fi, connectivity and device metadata entities;
-- optional clipboard and installed-app diagnostic entities when Octi exposes those modules; they are disabled by default because their contents can be sensitive;
+- optional clipboard and installed-app count diagnostic entities when Octi exposes those modules; they are disabled by default because their contents can be sensitive;
 - authenticated WebSocket refreshes with conditional HTTP polling as a safety net;
 - one Home Assistant device per linked Octi device, with the local Home Assistant client represented as a service device;
 - dynamic discovery of devices that appear after the initial setup;
 - a redacted Home Assistant diagnostics endpoint for troubleshooting.
 
-The integration does not write to Octi, transfer files or synchronize encrypted blobs. Clipboard and installed-app entities may contain sensitive information and should be treated accordingly.
+The integration does not write to Octi, transfer files or synchronize encrypted blobs. Clipboard data is sensitive; installed-app data is reduced to a count and the full inventory is not persisted in Home Assistant state.
 
 ## Installation
 
@@ -41,7 +41,7 @@ Once the repository is public, it can be added to HACS as a custom repository wi
 
 The linking payload contains account credentials and encryption key material. Treat it as a secret: do not put it in issues, screenshots, shared terminals or logs.
 
-Clipboard and installed-app entities are opt-in. When Octi exposes those modules, enable the entities individually from Home Assistant's entity registry only if you accept that their decrypted values can be visible to the UI, API, automations and recorder.
+Clipboard and installed-app entities are opt-in. When Octi exposes those modules, enable the entities individually from Home Assistant's entity registry only if you accept that their decrypted values can be visible to the UI, API, automations and recorder. The installed-app entity exposes only the count; the full inventory is not persisted in Home Assistant state.
 
 ### Removing a device
 
