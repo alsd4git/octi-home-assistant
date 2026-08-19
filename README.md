@@ -43,7 +43,7 @@ The linking payload contains account credentials and encryption key material. Tr
 
 Clipboard and installed-app entities are opt-in. When Octi exposes those modules, enable the entities individually from Home Assistant's entity registry only if you accept that their decrypted values can be visible to the UI, API, automations and recorder. The installed-app entity exposes only the count; the full inventory is not persisted in Home Assistant state.
 
-The integration performs a periodic safety refresh every five minutes. WebSocket change events can request an earlier refresh, but event bursts are coalesced for at least 30 seconds. If Octi or the network temporarily fails, the last valid snapshot remains available instead of making every entity unavailable. HTTP 429 responses honor `Retry-After`; when the server omits it, refreshes are paused for 15 minutes before retrying. Reloading the config entry from **Settings → Devices & services** performs an immediate fresh setup.
+The integration performs a periodic safety refresh every five minutes. WebSocket change events can request an earlier targeted refresh for the affected module, but event bursts are coalesced for at least 30 seconds. If Octi or the network temporarily fails, the last valid snapshot remains available instead of making every entity unavailable. HTTP 429 responses honor `Retry-After`; when the server omits it, refreshes are paused for 15 minutes before retrying. Reloading the config entry from **Settings → Devices & services** performs an immediate fresh setup.
 
 ### Removing a device
 

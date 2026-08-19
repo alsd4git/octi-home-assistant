@@ -44,6 +44,7 @@ class _SequenceClient:
             [{"id": "device-2"}],
         ]
         self.refresh = 0
+        self.requested_modules: list[tuple[str, str]] = []
 
     async def async_get_devices(self) -> list[dict[str, str]]:
         devices = self.devices[min(self.refresh, len(self.devices) - 1)]
@@ -53,6 +54,7 @@ class _SequenceClient:
         self, device_id: str, module_id: str, **kwargs: object
     ) -> OctiModuleValue | None:
         del kwargs
+        self.requested_modules.append((device_id, module_id))
         if self.refresh == 0 and device_id == "device-1" and module_id == MODULE_POWER:
             return OctiModuleValue({"status": "CHARGING"}, '"power-v1"', None)
         if self.refresh == 0 and device_id == "device-1" and module_id == MODULE_CLIPBOARD:
@@ -144,13 +146,36 @@ async def test_websocket_refresh_requests_are_coalesced(hass) -> None:
     entry.add_to_hass(hass)
     coordinator = OctiCoordinator(hass, _SequenceClient(), entry)
     coordinator.async_request_refresh = AsyncMock()
+    event = {
+        "events": [
+            {
+                "type": "module_changed",
+                "deviceId": "device-1",
+                "moduleId": MODULE_POWER,
+            }
+        ]
+    }
 
     with patch("custom_components.octi.coordinator.monotonic", side_effect=(100.0, 110.0, 131.0)):
-        await coordinator._async_request_event_refresh()
-        await coordinator._async_request_event_refresh()
-        await coordinator._async_request_event_refresh()
+        await coordinator._async_request_event_refresh(event)
+        await coordinator._async_request_event_refresh(event)
+        await coordinator._async_request_event_refresh(event)
 
     assert coordinator.async_request_refresh.await_count == 2
+
+
+@pytest.mark.asyncio
+async def test_event_refresh_fetches_only_changed_modules(hass) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    client = _SequenceClient()
+    coordinator = OctiCoordinator(hass, client, entry)
+    coordinator.data = {"devices": [{"id": "device-1"}], "modules": {"device-1": {}}}
+    coordinator._pending_event_modules = {("device-1", MODULE_POWER)}
+
+    await coordinator._async_update_data()
+
+    assert client.requested_modules == [("device-1", MODULE_POWER)]
 
 
 @pytest.mark.asyncio

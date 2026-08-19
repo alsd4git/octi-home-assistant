@@ -58,6 +58,7 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._websocket_task: asyncio.Task[None] | None = None
         self._rate_limit_until = 0.0
         self._last_event_refresh = 0.0
+        self._pending_event_modules: set[tuple[str, str]] | None = set()
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch devices and current MVP modules."""
@@ -80,6 +81,8 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     if device_id in device_ids
                 },
             }
+            event_modules = self._pending_event_modules
+            self._pending_event_modules = set()
             self._etags = {
                 (device_id, module_id): etag
                 for (device_id, module_id), etag in self._etags.items()
@@ -90,6 +93,8 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if not isinstance(device_id, str):
                     continue
                 for module_id in MODULES:
+                    if event_modules and (device_id, module_id) not in event_modules:
+                        continue
                     result = await self.client.async_get_module(
                         device_id,
                         module_id,
@@ -145,7 +150,7 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             try:
                 async for event in self.client.async_events():
                     if _has_module_change(event):
-                        await self._async_request_event_refresh()
+                        await self._async_request_event_refresh(event)
                 delay = WS_RECONNECT_MIN_SECONDS
             except asyncio.CancelledError:
                 raise
@@ -156,8 +161,13 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             await asyncio.sleep(delay)
             delay = min(delay * 2, WS_RECONNECT_MAX_SECONDS)
 
-    async def _async_request_event_refresh(self) -> None:
+    async def _async_request_event_refresh(self, event: dict[str, Any]) -> None:
         """Coalesce event bursts so one WebSocket burst cannot cause request floods."""
+        event_modules = _event_module_targets(event)
+        if event_modules is None:
+            self._pending_event_modules = None
+        elif self._pending_event_modules is not None:
+            self._pending_event_modules.update(event_modules)
         now = monotonic()
         if now - self._last_event_refresh < WS_EVENT_REFRESH_MIN_SECONDS:
             return
@@ -170,3 +180,21 @@ def _has_module_change(event: dict[str, Any]) -> bool:
     return isinstance(events, list) and any(
         isinstance(item, dict) and item.get("type") == "module_changed" for item in events
     )
+
+
+def _event_module_targets(event: dict[str, Any]) -> set[tuple[str, str]] | None:
+    """Extract precise module targets, or return None when a full refresh is safer."""
+    events = event.get("events")
+    if not isinstance(events, list):
+        return None
+    changes = [
+        item for item in events if isinstance(item, dict) and item.get("type") == "module_changed"
+    ]
+    targets: set[tuple[str, str]] = set()
+    for item in changes:
+        device_id = item.get("deviceId")
+        module_id = item.get("moduleId")
+        if not isinstance(device_id, str) or not isinstance(module_id, str):
+            return None
+        targets.add((device_id, module_id))
+    return targets
