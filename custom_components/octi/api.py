@@ -6,6 +6,8 @@ import base64
 import json
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from typing import Any
 from urllib.parse import urlencode
 
@@ -29,15 +31,6 @@ from .const import (
 )
 from .crypto import OctiCryptoError, decrypt_module_payload
 
-_CAPABILITIES = json.dumps(
-    [
-        "encryption:AES256_GCM_SIV",
-        "encryption:AES256_SIV",
-        "encryption:_reported",
-    ],
-    separators=(",", ":"),
-)
-
 
 class OctiApiError(RuntimeError):
     """An Octi transport or protocol error."""
@@ -45,6 +38,15 @@ class OctiApiError(RuntimeError):
 
 class OctiAuthenticationError(OctiApiError):
     """The Octi credentials were rejected."""
+
+
+class OctiRateLimitError(OctiApiError):
+    """The Octi server asked the client to slow down."""
+
+    def __init__(self, retry_after: int | None) -> None:
+        self.retry_after = retry_after
+        detail = f"; retry after {retry_after}s" if retry_after is not None else ""
+        super().__init__(f"Octi returned HTTP 429{detail}")
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,7 +101,10 @@ class OctiApiClient:
             "Octi-Device-Label": OCTI_LABEL,
             "Octi-Device-Platform": OCTI_PLATFORM,
             "Octi-Device-Version": OCTI_VERSION,
-            "Octi-Device-Capabilities": _CAPABILITIES,
+            "Octi-Device-Capabilities": json.dumps(
+                sorted((f"encryption:{self.keyset_type}", "encryption:_reported")),
+                separators=(",", ":"),
+            ),
         }
         if include_auth:
             credentials = f"{self.account_id}:{self.device_password}".encode()
@@ -208,11 +213,32 @@ class OctiApiClient:
         if response.status == 404 and allow_missing:
             response.release()
             return None
+        if response.status == 429:
+            retry_after = _parse_retry_after(response.headers.get("Retry-After"))
+            response.release()
+            raise OctiRateLimitError(retry_after)
         if response.status >= 400:
             status = response.status
             response.release()
             raise OctiApiError(f"Octi returned HTTP {status}")
         return response
+
+
+def _parse_retry_after(value: str | None) -> int | None:
+    """Parse an HTTP Retry-After value into a non-negative number of seconds."""
+    if not value:
+        return None
+    try:
+        return max(0, int(value))
+    except ValueError:
+        pass
+    try:
+        retry_at = parsedate_to_datetime(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if retry_at.tzinfo is None:
+        retry_at = retry_at.replace(tzinfo=UTC)
+    return max(0, int((retry_at - datetime.now(UTC)).total_seconds()))
 
 
 async def _json_response(response: ClientResponse) -> dict[str, Any] | list[Any]:

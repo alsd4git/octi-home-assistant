@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import base64
 from collections.abc import Mapping
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.octi import OctiRuntimeData
-from custom_components.octi.api import OctiModuleValue
+from custom_components.octi.api import OctiApiError, OctiModuleValue, OctiRateLimitError
 from custom_components.octi.const import (
     CONF_ACCOUNT_ID,
     CONF_DEVICE_ID,
@@ -105,6 +105,52 @@ async def test_websocket_listener_is_started_as_background_task(hass) -> None:
     create_background_task.assert_called_once()
     assert create_background_task.call_args.kwargs["name"] == "octi-websocket"
     await coordinator.async_stop()
+
+
+@pytest.mark.asyncio
+async def test_rate_limit_keeps_last_valid_snapshot_and_enters_cooldown(hass) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    client = _SequenceClient()
+    client.async_get_devices = AsyncMock(side_effect=OctiRateLimitError(retry_after=600))
+    coordinator = OctiCoordinator(hass, client, entry)
+    coordinator.data = {"devices": [{"id": "device-1"}], "modules": {"device-1": {}}}
+
+    snapshot = await coordinator._async_update_data()
+    assert snapshot is coordinator.data
+    assert coordinator._rate_limit_until > 0
+
+    await coordinator._async_update_data()
+    assert client.async_get_devices.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_temporary_api_error_keeps_last_valid_snapshot(hass) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    client = _SequenceClient()
+    client.async_get_devices = AsyncMock(side_effect=OctiApiError("temporary failure"))
+    coordinator = OctiCoordinator(hass, client, entry)
+    coordinator.data = {"devices": [{"id": "device-1"}], "modules": {"device-1": {}}}
+
+    snapshot = await coordinator._async_update_data()
+
+    assert snapshot is coordinator.data
+
+
+@pytest.mark.asyncio
+async def test_websocket_refresh_requests_are_coalesced(hass) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    coordinator = OctiCoordinator(hass, _SequenceClient(), entry)
+    coordinator.async_request_refresh = AsyncMock()
+
+    with patch("custom_components.octi.coordinator.monotonic", side_effect=(100.0, 110.0, 131.0)):
+        await coordinator._async_request_event_refresh()
+        await coordinator._async_request_event_refresh()
+        await coordinator._async_request_event_refresh()
+
+    assert coordinator.async_request_refresh.await_count == 2
 
 
 @pytest.mark.asyncio

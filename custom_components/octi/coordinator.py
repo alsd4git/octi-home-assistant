@@ -6,6 +6,7 @@ import asyncio
 import logging
 from contextlib import suppress
 from datetime import timedelta
+from time import monotonic
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -13,7 +14,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import OctiApiClient, OctiApiError, OctiAuthenticationError
+from .api import (
+    OctiApiClient,
+    OctiApiError,
+    OctiAuthenticationError,
+    OctiRateLimitError,
+)
 from .const import (
     DEFAULT_REFRESH_INTERVAL_SECONDS,
     MODULE_APPS,
@@ -23,6 +29,8 @@ from .const import (
     MODULE_POWER,
     MODULE_WIFI,
     OPTIONAL_MODULES,
+    RATE_LIMIT_COOLDOWN_SECONDS,
+    WS_EVENT_REFRESH_MIN_SECONDS,
     WS_RECONNECT_MAX_SECONDS,
     WS_RECONNECT_MIN_SECONDS,
 )
@@ -48,9 +56,14 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         self._etags: dict[tuple[str, str], str] = {}
         self._websocket_task: asyncio.Task[None] | None = None
+        self._rate_limit_until = 0.0
+        self._last_event_refresh = 0.0
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch devices and current MVP modules."""
+        if self.data and monotonic() < self._rate_limit_until:
+            _LOGGER.debug("Skipping Octi refresh during server-requested cooldown")
+            return self.data
         try:
             devices = await self.client.async_get_devices()
             previous_modules = self.data.get("modules", {}) if self.data else {}
@@ -92,11 +105,23 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     )
                     if not result.not_modified:
                         data["modules"].setdefault(device_id, {})[module_id] = result.value
+            self._rate_limit_until = 0.0
             return data
         except OctiAuthenticationError as err:
             raise ConfigEntryAuthFailed("Octi credentials were rejected") from err
+        except OctiRateLimitError as err:
+            cooldown = err.retry_after or RATE_LIMIT_COOLDOWN_SECONDS
+            self._rate_limit_until = monotonic() + cooldown
+            return self._keep_last_data_or_raise(err)
         except OctiApiError as err:
-            raise UpdateFailed("Unable to update Octi") from err
+            return self._keep_last_data_or_raise(err)
+
+    def _keep_last_data_or_raise(self, error: OctiApiError) -> dict[str, Any]:
+        """Keep entities usable during a temporary server or network failure."""
+        if self.data:
+            _LOGGER.warning("Octi refresh failed; keeping the last valid data: %s", error)
+            return self.data
+        raise UpdateFailed("Unable to update Octi") from error
 
     async def async_start(self) -> None:
         """Start the event listener after the first successful refresh."""
@@ -120,7 +145,7 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             try:
                 async for event in self.client.async_events():
                     if _has_module_change(event):
-                        await self.async_request_refresh()
+                        await self._async_request_event_refresh()
                 delay = WS_RECONNECT_MIN_SECONDS
             except asyncio.CancelledError:
                 raise
@@ -130,6 +155,14 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 _LOGGER.exception("Unexpected Octi WebSocket failure")
             await asyncio.sleep(delay)
             delay = min(delay * 2, WS_RECONNECT_MAX_SECONDS)
+
+    async def _async_request_event_refresh(self) -> None:
+        """Coalesce event bursts so one WebSocket burst cannot cause request floods."""
+        now = monotonic()
+        if now - self._last_event_refresh < WS_EVENT_REFRESH_MIN_SECONDS:
+            return
+        self._last_event_refresh = now
+        await self.async_request_refresh()
 
 
 def _has_module_change(event: dict[str, Any]) -> bool:

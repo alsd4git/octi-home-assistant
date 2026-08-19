@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from unittest.mock import AsyncMock
 
 import pytest
@@ -8,6 +9,7 @@ from custom_components.octi.api import (
     OctiApiClient,
     OctiApiError,
     OctiAuthenticationError,
+    OctiRateLimitError,
 )
 from custom_components.octi.const import MAX_JSON_RESPONSE_BYTES, MAX_MODULE_CIPHERTEXT_BYTES
 
@@ -58,6 +60,15 @@ def _client(response: _Response) -> OctiApiClient:
     )
 
 
+def test_device_capabilities_advertise_only_the_linked_encryption_mode() -> None:
+    client = _client(_Response(204))
+
+    assert json.loads(client._headers()["Octi-Device-Capabilities"]) == [
+        "encryption:AES256_GCM_SIV",
+        "encryption:_reported",
+    ]
+
+
 @pytest.mark.asyncio
 async def test_module_204_clears_the_cached_value() -> None:
     assert await _client(_Response(204)).async_get_module("target", "module", optional=True) is None
@@ -78,6 +89,17 @@ async def test_module_304_preserves_the_cached_value() -> None:
 async def test_api_authentication_error_is_typed() -> None:
     with pytest.raises(OctiAuthenticationError):
         await _client(_Response(401)).async_get_devices()
+
+
+@pytest.mark.asyncio
+async def test_api_rate_limit_error_preserves_retry_after() -> None:
+    response = _Response(429, headers={"Retry-After": "600"})
+
+    with pytest.raises(OctiRateLimitError) as error:
+        await _client(response).async_get_devices()
+
+    assert error.value.retry_after == 600
+    assert response.released is True
 
 
 @pytest.mark.asyncio

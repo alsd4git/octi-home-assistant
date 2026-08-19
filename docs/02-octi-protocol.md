@@ -33,6 +33,13 @@ Authenticated requests use:
 - `Octi-Device-Label` for a user-visible label;
 - `Octi-Device-Capabilities`, including the encryption modes actually supported by the client.
 
+The integration identifies itself as `home_assistant`, uses the integration version as its
+advertised version and sends a canonical capability set containing the linked keyset's
+encryption mode plus `encryption:_reported`. It does not claim support for another mode merely
+because the decoder has compatibility code for it. The MVP remains read-only and therefore does
+not publish an encrypted self `MetaInfo` module; the server/device-list headers are the complete
+advertisement for the Home Assistant client for now.
+
 The Home Assistant integration should generate one stable UUID for its linked Octi device and persist it in the config entry. It should not regenerate the identity on every restart.
 
 ## Account and device discovery

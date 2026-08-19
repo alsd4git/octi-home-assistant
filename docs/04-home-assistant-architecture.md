@@ -66,3 +66,7 @@ There is no write service in the MVP. The integration exposes diagnostic entitie
 - `aiohttp`/mock transport tests for status codes, ETags, reconnects and rate-limit responses.
 - Home Assistant config-entry tests cover setup, unload, reauthentication and duplicate-configuration handling; API status handling, coordinator invalidation, dynamic discovery and diagnostics redaction are covered with mocks.
 - A small end-to-end test against a disposable/self-hosted Octi server only when a documented test fixture is available.
+
+### Refresh and temporary failures
+
+The coordinator performs a five-minute HTTP safety refresh. Authenticated WebSocket `module_changed` events may request an earlier refresh, but event-triggered refreshes are coalesced for at least 30 seconds. A successful refresh replaces the snapshot; `304` keeps the affected module value and `204`/optional `404` removes it. Transient transport, server and rate-limit failures keep the last successful snapshot so entities do not flap to `unavailable`. A `429` uses the server's `Retry-After` value, or a conservative 15-minute cooldown when that header is absent. Reloading the config entry is the supported manual refresh operation.
