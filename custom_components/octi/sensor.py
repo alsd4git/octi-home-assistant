@@ -91,16 +91,28 @@ async def async_setup_entry(
 
 def _entities_for_device(coordinator: OctiCoordinator, device_id: str) -> list[SensorEntity]:
     """Build all entities currently supported by one Octi device."""
-    entities: list[SensorEntity] = [
-        OctiModuleSensor(coordinator, device_id, MODULE_POWER, "battery_percent"),
-        OctiModuleSensor(coordinator, device_id, MODULE_POWER, "status"),
-        OctiModuleSensor(coordinator, device_id, MODULE_WIFI, "currentWifi.ssid"),
-        OctiModuleSensor(coordinator, device_id, MODULE_CONNECTIVITY, "connectionType"),
-    ]
+    entities: list[SensorEntity] = []
+    power = _module_data(coordinator, device_id, MODULE_POWER)
+    entities.extend(
+        OctiModuleSensor(coordinator, device_id, MODULE_POWER, field)
+        for field in ("battery_percent", "status")
+        if _module_field_is_observed(power, field)
+    )
     entities.extend(
         OctiModuleSensor(coordinator, device_id, MODULE_POWER, field, suffix, label)
         for suffix, label, field in _POWER_FIELDS
+        if _module_field_is_observed(power, field)
     )
+
+    wifi = _module_data(coordinator, device_id, MODULE_WIFI)
+    if _module_field_is_observed(wifi, "currentWifi.ssid"):
+        entities.append(OctiModuleSensor(coordinator, device_id, MODULE_WIFI, "currentWifi.ssid"))
+
+    connectivity = _module_data(coordinator, device_id, MODULE_CONNECTIVITY)
+    if _module_field_is_observed(connectivity, "connectionType"):
+        entities.append(
+            OctiModuleSensor(coordinator, device_id, MODULE_CONNECTIVITY, "connectionType")
+        )
 
     device = _device_record(coordinator, device_id)
     entities.extend(
@@ -136,6 +148,20 @@ def _module_data_or_none(
     modules = coordinator.data.get("modules", {}).get(device_id, {})
     value = modules.get(module_id) if isinstance(modules, dict) else None
     return value if isinstance(value, dict) else None
+
+
+def _module_field_is_observed(module: dict[str, Any], field: str) -> bool:
+    """Return whether a module has exposed the field required by an entity."""
+    if field == "battery_percent":
+        battery = module.get("battery")
+        return isinstance(battery, dict) and "level" in battery and "scale" in battery
+
+    value: Any = module
+    for component in field.split("."):
+        if not isinstance(value, dict) or component not in value:
+            return False
+        value = value[component]
+    return True
 
 
 def _device_record(coordinator: OctiCoordinator, device_id: str) -> dict[str, Any]:
@@ -216,10 +242,10 @@ class OctiModuleSensor(_OctiSensor):
 
     @property
     def available(self) -> bool:
-        """Require the module to remain available after a refresh."""
-        return super().available and self._module_id in self.coordinator.data.get(
-            "modules", {}
-        ).get(self._device_id, {})
+        """Require the module field to remain available after a refresh."""
+        return super().available and _module_field_is_observed(
+            _module_data(self.coordinator, self._device_id, self._module_id), self._field
+        )
 
     @property
     def native_value(self) -> Any:

@@ -226,22 +226,56 @@ async def test_sensor_setup_discovers_new_devices_and_optional_modules(hass) -> 
 
     await async_setup_sensor_entry(hass, entry, added.extend)
     initial_ids = {entity.unique_id for entity in added}
+    assert initial_ids == set()
 
     coordinator.async_set_updated_data(
         {
             "devices": [{"id": "device-1"}, {"id": "device-2"}],
             "modules": {
                 "device-1": {MODULE_CLIPBOARD: {"type": "EMPTY", "data": ""}},
-                "device-2": {},
+                "device-2": {MODULE_POWER: {"status": "CHARGING"}},
             },
         }
     )
     await hass.async_block_till_done()
 
     all_ids = {entity.unique_id for entity in added}
-    assert any("battery_percent" in entity_id for entity_id in initial_ids)
-    assert any(entity_id.startswith("device-2_") for entity_id in all_ids)
+    assert "device-2_eu.darken.octi.module.core.power_status" in all_ids
+    assert not any("battery_percent" in entity_id for entity_id in all_ids)
     assert "device-1_clipboard" in all_ids
+    await coordinator.async_shutdown()
+
+
+@pytest.mark.asyncio
+async def test_sensor_creation_requires_observed_module_fields(hass) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    coordinator = OctiCoordinator(hass, _SequenceClient(), entry)
+    coordinator.data = {
+        "devices": [{"id": "device-1"}],
+        "modules": {
+            "device-1": {
+                MODULE_POWER: {
+                    "battery": {"level": 42, "scale": 100},
+                    "chargeIO": {"currentNow": 1_250_000},
+                }
+            }
+        },
+    }
+
+    entities = _entities_for_device(coordinator, "device-1")
+    fields = {
+        getattr(entity, "_field", None)
+        for entity in entities
+        if getattr(entity, "_module_id", None) == MODULE_POWER
+    }
+
+    assert fields == {"battery_percent", "chargeIO.currentNow"}
+    assert {entity.unique_id for entity in entities} == {
+        "device-1_eu.darken.octi.module.core.power_battery_percent",
+        "device-1_current_now",
+        "device-1_charge_speed",
+    }
     await coordinator.async_shutdown()
 
 

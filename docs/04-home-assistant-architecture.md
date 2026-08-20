@@ -48,7 +48,7 @@ Avoid one polling task per entity. One coordinator should serve all entities for
 
 ## Entities
 
-Sensors represent stable values from power, Wi-Fi and connectivity, plus the documented metadata module. Device grouping uses the Octi device ID and a deterministic Home Assistant identifier. Optional clipboard and installed-app modules are fetched defensively: `204` and `404` clear the cached value and leave the entity unavailable, while `304` preserves the previous value. A missing optional module never fails the config entry.
+Sensors represent stable values from power, Wi-Fi and connectivity, plus the documented metadata module. Device grouping uses the Octi device ID and a deterministic Home Assistant identifier. A sensor is registered only after its module and required field have been observed; the coordinator listener adds sensors dynamically when fields appear later. Optional clipboard and installed-app modules are fetched defensively: `204` and `404` clear the cached value and leave the entity unavailable, while `304` preserves the previous value. A missing optional module never fails the config entry.
 
 Entities include battery level, charging state, Wi-Fi SSID/signal, connectivity status, device metadata, clipboard text and the installed-app count. The power payload also exposes battery health/temperature, instantaneous and average current, charge/discharge estimates (`fullAt`, `emptyAt`, `fullSince`) and the derived charge speed. Clipboard and app entities are disabled by default and must be enabled individually because they can contain sensitive information; the full app inventory is intentionally not persisted in entity attributes. File transfer remains a future capability and is intentionally not part of this read-mostly milestone.
 
