@@ -8,7 +8,7 @@ This project is independent from the Octi Android and web clients and is not an 
 
 Early beta. The integration has been exercised against a real Home Assistant Docker installation and the pinned Octi interoperability fixtures. It is not in the HACS default catalog yet.
 
-The first milestone is a read-only integration that can:
+The first milestone is a read-mostly integration that can:
 
 - UI-based setup from an Octi linking payload;
 - local decryption of the supported Octi payload encryption modes;
@@ -19,7 +19,7 @@ The first milestone is a read-only integration that can:
 - dynamic discovery of devices that appear after the initial setup;
 - a redacted Home Assistant diagnostics endpoint for troubleshooting.
 
-The integration does not write to Octi, transfer files or synchronize encrypted blobs. Clipboard data is sensitive; installed-app data is reduced to a count and the full inventory is not persisted in Home Assistant state.
+The integration does not write peer state, transfer files or synchronize encrypted blobs. It publishes only a small encrypted `MetaInfo` record describing the Home Assistant client itself. Clipboard data is sensitive; installed-app data is reduced to a count and the full inventory is not persisted in Home Assistant state.
 
 ## Installation
 
@@ -44,6 +44,8 @@ The linking payload contains account credentials and encryption key material. Tr
 Clipboard and installed-app entities are opt-in. When Octi exposes those modules, enable the entities individually from Home Assistant's entity registry only if you accept that their decrypted values can be visible to the UI, API, automations and recorder. The installed-app entity exposes only the count; the full inventory is not persisted in Home Assistant state.
 
 The integration performs a periodic safety refresh every five minutes. WebSocket change events can request an earlier targeted refresh for the affected module, but event bursts are coalesced for at least 30 seconds. If Octi or the network temporarily fails, the last valid snapshot remains available instead of making every entity unavailable. HTTP 429 responses honor `Retry-After`; when the server omits it, refreshes are paused for 15 minutes before retrying. Reloading the config entry from **Settings → Devices & services** performs an immediate fresh setup.
+
+The **Sync now** button requests an immediate refresh of all devices and modules. It does not enable clipboard/apps or perform any peer write action.
 
 ### Removing a device
 

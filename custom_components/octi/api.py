@@ -166,6 +166,21 @@ class OctiApiClient:
             response.headers.get("X-Modified-At"),
         )
 
+    async def async_write_module(self, device_id: str, module_id: str, ciphertext: bytes) -> None:
+        """Write one already-encrypted module payload to the linked device slot."""
+        url = f"{self.server}/v1/module/{module_id}?{urlencode({'device-id': device_id})}"
+        response = await self._request(
+            "POST",
+            url,
+            headers={
+                **self._headers(),
+                "Content-Type": "application/octet-stream",
+            },
+            data=ciphertext,
+        )
+        if response is not None:
+            response.release()
+
     async def async_events(self) -> AsyncIterator[dict[str, Any]]:
         """Yield authenticated WebSocket event envelopes until disconnected."""
         ws_url = self.server.replace("https://", "wss://", 1).replace("http://", "ws://", 1)
@@ -195,6 +210,7 @@ class OctiApiClient:
         headers: dict[str, str] | None = None,
         auth: bool = True,
         allow_missing: bool = False,
+        data: bytes | None = None,
     ) -> ClientResponse | None:
         request_headers = headers or (self._headers() if auth else {})
         try:
@@ -202,6 +218,7 @@ class OctiApiClient:
                 method,
                 url,
                 headers=request_headers,
+                data=data,
                 timeout=20,
                 allow_redirects=False,
             )

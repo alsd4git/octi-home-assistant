@@ -36,9 +36,9 @@ Authenticated requests use:
 The integration identifies itself as `home_assistant`, uses the integration version as its
 advertised version and sends a canonical capability set containing the linked keyset's
 encryption mode plus `encryption:_reported`. It does not claim support for another mode merely
-because the decoder has compatibility code for it. The MVP remains read-only and therefore does
-not publish an encrypted self `MetaInfo` module; the server/device-list headers are the complete
-advertisement for the Home Assistant client for now.
+because the decoder has compatibility code for it. The integration publishes one small encrypted
+self `MetaInfo` module so other clients can identify the Home Assistant participant; it does not
+publish peer state or any sensitive optional module.
 
 The Home Assistant integration should generate one stable UUID for its linked Octi device and persist it in the config entry. It should not regenerate the identity on every restart.
 

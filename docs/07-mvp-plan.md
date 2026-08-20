@@ -1,6 +1,6 @@
 # MVP implementation plan
 
-The work was deliberately split into slices that could be reviewed and tested without a complete Home Assistant integration. The current repository contains the first read-only MVP; the remaining items below are hardening or release work.
+The work was deliberately split into slices that could be reviewed and tested without a complete Home Assistant integration. The current repository contains the first read-mostly MVP; it publishes only the linked Home Assistant client's encrypted `MetaInfo`, while the remaining items below are hardening or release work.
 
 ## Phase 0 — repository and protocol lock
 
@@ -44,3 +44,8 @@ The work was deliberately split into slices that could be reviewed and tested wi
 - File transfer/blob support after its independent fixture suite and a clear Home Assistant UX are implemented.
 - Additional optional modules and write actions only after their privacy and consent model is reviewed.
 - Carefully reviewed write actions with explicit user consent.
+
+## Upstream follow-ups before calling the integration polished
+
+- Ask the Octi web maintainer whether `home_assistant` should become a first-class platform (or whether a web-compatible alias is preferred) and whether a dedicated Home Assistant `deviceType` is warranted. Until then, the integration advertises `home_assistant` honestly and publishes `MetaInfo.deviceType = UNKNOWN` rather than masquerading as a browser or desktop.
+- Ask for permission to use the official Octi icon and add it only after the licensing/branding decision is recorded.

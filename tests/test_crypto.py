@@ -6,7 +6,11 @@ import gzip
 import pytest
 
 from custom_components.octi.const import KEYSET_GCM_SIV, KEYSET_SIV
-from custom_components.octi.crypto import OctiCryptoError, decrypt_module_payload
+from custom_components.octi.crypto import (
+    OctiCryptoError,
+    decrypt_module_payload,
+    encrypt_module_payload,
+)
 
 # Static vectors generated with the upstream Tink implementation. Keeping the
 # wire-format fixtures here avoids a runtime or development dependency on Tink.
@@ -42,6 +46,32 @@ def test_decrypt_module_payload(keyset_type: str, keyset: bytes, ciphertext: byt
         device_id=device_id,
         module_id=module_id,
     ) == {"status": "CHARGING", "battery": {"level": 42, "scale": 100}}
+
+
+@pytest.mark.parametrize(
+    ("keyset_type", "keyset"),
+    [(KEYSET_GCM_SIV, GCM_KEYSET), (KEYSET_SIV, SIV_KEYSET)],
+)
+def test_encrypt_module_payload_round_trips(keyset_type: str, keyset: bytes) -> None:
+    value = {"deviceType": "UNKNOWN", "deviceName": "Home Assistant"}
+    ciphertext = encrypt_module_payload(
+        value,
+        keyset=keyset,
+        keyset_type=keyset_type,
+        device_id="device-1",
+        module_id="eu.darken.octi.module.core.meta",
+    )
+
+    assert (
+        decrypt_module_payload(
+            ciphertext,
+            keyset=keyset,
+            keyset_type=keyset_type,
+            device_id="device-1",
+            module_id="eu.darken.octi.module.core.meta",
+        )
+        == value
+    )
 
 
 def test_gcm_siv_rejects_wrong_associated_data() -> None:

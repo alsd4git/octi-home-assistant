@@ -17,7 +17,7 @@ The main risks are:
 - Treat the linking payload as a secret. Do not include it in exception messages.
 - Prefer HTTPS/WSS. An `http` endpoint is accepted only when the linking payload explicitly supplies it; the integration never downgrades an HTTPS endpoint.
 - Never log Authorization, device password, keyset bytes, ciphertext or decrypted module contents.
-- Keep the integration read-only until the write protocol and user-consent model are independently reviewed.
+- Keep the integration read-mostly: the only write is the small encrypted self `MetaInfo` record; peer state, clipboard, apps and files remain read-only or out of scope.
 - Keep sensitive modules explicit and optional: clipboard and installed-app data are fetched only when Octi reports those module endpoints, never as a requirement for account setup. Their entities are disabled by default and require an explicit user opt-in before their decrypted values enter Home Assistant's state store. File/blob modules are not fetched.
 - Bound compressed and decompressed payload sizes before parsing them, including the linking payload and encrypted module responses.
 - Verify GCM-SIV associated data exactly as specified; do not silently retry with alternate AAD values.
@@ -27,10 +27,10 @@ The main risks are:
 
 ## Credential lifecycle
 
-The linking payload includes enough material to access and write the account. Even though this integration is read-only, users should be told that the linked Home Assistant device is a real Octi account participant. If credentials expire, Home Assistant can start the reauthentication flow with a fresh payload for the same account and server; revoking the Octi device still requires removing and linking the config entry again.
+The linking payload includes enough material to access and write the account. The integration uses that authority only to publish its own `MetaInfo` record; users should still be told that the linked Home Assistant device is a real Octi account participant. If credentials expire, Home Assistant can start the reauthentication flow with a fresh payload for the same account and server; revoking the Octi device still requires removing and linking the config entry again.
 
 ## User-facing wording
 
 The setup flow and README should say plainly:
 
-> This community integration stores the Octi credentials needed to read your account. Home Assistant decrypts selected module values locally and exposes them as entities. The current release is read-only: clipboard and installed-app count entities are discovered only when those optional modules are available and are disabled by default; the full app inventory is not persisted in entity attributes. File transfer and blob synchronisation are not implemented.
+> This community integration stores the Octi credentials needed to read your account and publish its own encrypted device metadata. Home Assistant decrypts selected module values locally and exposes them as entities. Clipboard and installed-app count entities are discovered only when those optional modules are available and are disabled by default; the full app inventory is not persisted in entity attributes. File transfer and blob synchronisation are not implemented.

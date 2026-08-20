@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 from collections.abc import Mapping
 from unittest.mock import AsyncMock, patch
@@ -63,6 +64,14 @@ class _SequenceClient:
             return OctiModuleValue(None, '"power-v1"', None, not_modified=True)
         return None
 
+    async def async_write_module(self, *args: object, **kwargs: object) -> None:
+        del args, kwargs
+
+    async def async_events(self):
+        while True:
+            await asyncio.sleep(3600)
+            yield {}
+
 
 def _entry() -> MockConfigEntry:
     return MockConfigEntry(domain=DOMAIN, data=ENTRY_DATA)
@@ -96,16 +105,18 @@ async def test_websocket_listener_is_started_as_background_task(hass) -> None:
     entry = _entry()
     entry.add_to_hass(hass)
     coordinator = OctiCoordinator(hass, _SequenceClient(), entry)
+    with patch.object(coordinator, "async_publish_meta_info", new_callable=AsyncMock):
+        with patch.object(
+            hass,
+            "async_create_background_task",
+            wraps=hass.async_create_background_task,
+        ) as create_background_task:
+            await coordinator.async_start()
 
-    with patch.object(
-        hass,
-        "async_create_background_task",
-        wraps=hass.async_create_background_task,
-    ) as create_background_task:
-        await coordinator.async_start()
-
-    create_background_task.assert_called_once()
-    assert create_background_task.call_args.kwargs["name"] == "octi-websocket"
+    assert [call.kwargs["name"] for call in create_background_task.call_args_list] == [
+        "octi-websocket",
+        "octi-meta-publish",
+    ]
     await coordinator.async_stop()
 
 
@@ -138,6 +149,31 @@ async def test_temporary_api_error_keeps_last_valid_snapshot(hass) -> None:
     snapshot = await coordinator._async_update_data()
 
     assert snapshot is coordinator.data
+
+
+@pytest.mark.asyncio
+async def test_meta_info_is_published_to_own_device(hass) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    client = _SequenceClient()
+    client.device_id = "device-1"
+    client.keyset = b"keyset"
+    client.keyset_type = "AES256_GCM_SIV"
+    client.async_write_module = AsyncMock()
+    coordinator = OctiCoordinator(hass, client, entry)
+
+    with patch(
+        "custom_components.octi.coordinator.encrypt_module_payload",
+        return_value=b"encrypted-meta",
+    ) as encrypt:
+        await coordinator.async_publish_meta_info()
+
+    encrypt.assert_called_once()
+    client.async_write_module.assert_awaited_once_with(
+        "device-1",
+        "eu.darken.octi.module.core.meta",
+        b"encrypted-meta",
+    )
 
 
 @pytest.mark.asyncio

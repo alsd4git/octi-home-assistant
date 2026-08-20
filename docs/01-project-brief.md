@@ -12,7 +12,7 @@ The Octi maintainer has indicated that a separate community repository with HACS
 
 ## MVP scope
 
-The first release should be read-only and intentionally narrow:
+The first release should be read-mostly and intentionally narrow:
 
 1. A config flow accepts the Octi linking payload and validates its server, share code and keyset.
 2. The integration joins the account with a stable Home Assistant device identity.
@@ -24,7 +24,7 @@ The first release should be read-only and intentionally narrow:
 
 ## Non-goals for the MVP
 
-- Mutating Octi state or exposing write services.
+- Mutating peer Octi state or exposing general write services. Publishing the Home Assistant client's own encrypted `MetaInfo` is the only exception.
 - File contents, file transfer and other write-oriented or high-risk modules. Clipboard contents and installed-app count are optional read-only diagnostics and must remain clearly marked as sensitive.
 - Streaming blob encryption/decryption.
 - Reimplementing account management or inventing a new linking format.
@@ -37,7 +37,7 @@ The first release should be read-only and intentionally narrow:
 - A temporary network failure does not create duplicate entities or lose the config entry.
 - Secrets are stored using Home Assistant's config-entry machinery and never appear in normal logs.
 - HACS validation and Home Assistant's Hassfest checks pass before the first release.
-- The README clearly labels the integration as community-maintained and read-only.
+- The README clearly labels the integration as community-maintained and read-mostly, with the self-`MetaInfo` exception.
 
 ## Current operational decisions
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import gzip
 import io
 import json
+import os
 from typing import Any
 
 from cryptography.exceptions import InvalidTag, UnsupportedAlgorithm
@@ -21,6 +22,40 @@ from .const import (
 
 class OctiCryptoError(ValueError):
     """The payload cannot be decrypted or decoded."""
+
+
+def encrypt_module_payload(
+    value: Any,
+    *,
+    keyset: bytes,
+    keyset_type: str,
+    device_id: str,
+    module_id: str,
+) -> bytes:
+    """Serialize, gzip and encrypt one Octi module payload."""
+    compressed = gzip.compress(
+        json.dumps(value, ensure_ascii=False, separators=(",", ":")).encode("utf-8"),
+        mtime=0,
+    )
+    if len(compressed) > MAX_MODULE_COMPRESSED_BYTES:
+        raise OctiCryptoError("The compressed payload is too large")
+    try:
+        key_id, raw_key = _primary_key(keyset, keyset_type)
+        aad = f"{device_id}:{module_id}".encode()
+        if keyset_type == KEYSET_GCM_SIV:
+            nonce = os.urandom(12)
+            encrypted = AESGCMSIV(raw_key).encrypt(nonce, compressed, aad)
+            body = nonce + encrypted
+        elif keyset_type == KEYSET_SIV:
+            body = AESSIV(raw_key).encrypt(compressed, [b""])
+        else:
+            raise OctiCryptoError("The Octi encryption mode is not supported")
+    except (UnsupportedAlgorithm, ValueError) as err:
+        raise OctiCryptoError("The Octi payload could not be encrypted") from err
+    ciphertext = b"\x01" + key_id.to_bytes(4, "big") + body
+    if len(ciphertext) > MAX_MODULE_CIPHERTEXT_BYTES:
+        raise OctiCryptoError("The encrypted payload is too large")
+    return ciphertext
 
 
 def decrypt_module_payload(

@@ -53,6 +53,9 @@ class _FakeClient:
             await asyncio.sleep(3600)
             yield {}
 
+    async def async_write_module(self, *args: object, **kwargs: object) -> None:
+        del args, kwargs
+
     async def async_close(self) -> None:
         self.closed = True
 

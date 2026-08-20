@@ -122,6 +122,18 @@ async def test_api_disables_http_redirects() -> None:
 
 
 @pytest.mark.asyncio
+async def test_write_module_uses_octi_binary_write_endpoint() -> None:
+    response = _Response(204)
+    client = _client(response)
+
+    await client.async_write_module("target", "module", b"ciphertext")
+
+    call = client._session.request.call_args
+    assert call.args[:2] == ("POST", "https://octi.example/v1/module/module?device-id=target")
+    assert call.kwargs["data"] == b"ciphertext"
+
+
+@pytest.mark.asyncio
 async def test_module_body_is_rejected_before_decryption_when_too_large() -> None:
     response = _Response(
         200,

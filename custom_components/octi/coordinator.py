@@ -10,6 +10,7 @@ from time import monotonic
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import __version__ as HOME_ASSISTANT_VERSION
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -34,6 +35,8 @@ from .const import (
     WS_RECONNECT_MAX_SECONDS,
     WS_RECONNECT_MIN_SECONDS,
 )
+from .crypto import encrypt_module_payload
+from .meta import build_self_meta_info
 
 _LOGGER = logging.getLogger(__name__)
 MODULES = (MODULE_POWER, MODULE_WIFI, MODULE_CONNECTIVITY)
@@ -56,6 +59,7 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         self._etags: dict[tuple[str, str], str] = {}
         self._websocket_task: asyncio.Task[None] | None = None
+        self._meta_publish_task: asyncio.Task[None] | None = None
         self._rate_limit_until = 0.0
         self._last_event_refresh = 0.0
         self._pending_event_modules: set[tuple[str, str]] | None = set()
@@ -133,16 +137,43 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._websocket_task = self.hass.async_create_background_task(
             self._async_event_loop(), name="octi-websocket"
         )
+        self._meta_publish_task = self.hass.async_create_background_task(
+            self._async_publish_meta_info(), name="octi-meta-publish"
+        )
 
     async def async_stop(self) -> None:
         """Stop background event listening and await task cancellation."""
-        task = self._websocket_task
+        tasks = (self._websocket_task, self._meta_publish_task)
         self._websocket_task = None
-        if task is None:
-            return
-        task.cancel()
-        with suppress(asyncio.CancelledError):
-            await task
+        self._meta_publish_task = None
+        for task in tasks:
+            if task is None:
+                continue
+            task.cancel()
+            with suppress(asyncio.CancelledError):
+                await task
+
+    async def async_publish_meta_info(self) -> None:
+        """Publish the linked Home Assistant client's encrypted self description."""
+        payload = build_self_meta_info(self.client.device_id, HOME_ASSISTANT_VERSION)
+        ciphertext = encrypt_module_payload(
+            payload,
+            keyset=self.client.keyset,
+            keyset_type=self.client.keyset_type,
+            device_id=self.client.device_id,
+            module_id=MODULE_META,
+        )
+        await self.client.async_write_module(self.client.device_id, MODULE_META, ciphertext)
+
+    async def _async_publish_meta_info(self) -> None:
+        try:
+            await self.async_publish_meta_info()
+        except asyncio.CancelledError:
+            raise
+        except OctiApiError as err:
+            _LOGGER.warning("Unable to publish Octi MetaInfo: %s", err)
+        except Exception:
+            _LOGGER.exception("Unexpected failure publishing Octi MetaInfo")
 
     async def _async_event_loop(self) -> None:
         delay = WS_RECONNECT_MIN_SECONDS
