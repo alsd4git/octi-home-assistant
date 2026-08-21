@@ -74,6 +74,8 @@ The repository also includes GitHub Actions for Hassfest and HACS validation in 
 
 ## Documentation
 
+- [Changelog](CHANGELOG.md)
+- [Security policy](SECURITY.md)
 - [Project brief](docs/01-project-brief.md)
 - [Octi protocol notes](docs/02-octi-protocol.md)
 - [Cryptography and interoperability](docs/03-crypto-and-interop.md)
