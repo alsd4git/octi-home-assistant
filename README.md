@@ -23,14 +23,28 @@ The integration does not write peer state, transfer files or synchronize encrypt
 
 ## Installation
 
-The repository is still being prepared for publication. For development, install it as a custom integration by copying `custom_components/octi/` into your Home Assistant configuration directory:
+### HACS custom repository
+
+The repository is public and can be installed through HACS as a custom repository. In HACS:
+
+1. Open HACS and select the three-dot menu in the top-right corner.
+2. Select **Custom repositories**.
+3. Add `https://github.com/alsd4git/octi-home-assistant` as the repository URL.
+4. Select **Integration** as the repository type and confirm with **Add**.
+5. Find **Octi** in HACS, install it, then restart Home Assistant.
+
+After the restart, add the integration from **Settings → Devices & services → Add integration** and search for **Octi**.
+
+### Manual installation
+
+For development or systems where HACS is not available, copy `custom_components/octi/` into your Home Assistant configuration directory:
 
 ```bash
 mkdir -p /config/custom_components/octi
 cp -a custom_components/octi/. /config/custom_components/octi/
 ```
 
-Once the repository is public, it can be added to HACS as a custom repository with category **Integration**. HACS default-catalog inclusion will be considered after releases and validation checks are established.
+Restart Home Assistant after copying the files. HACS default-catalog inclusion will be considered separately after further validation and release work; until then, the custom repository remains the recommended HACS installation path for testers.
 
 ## Configuration
 
