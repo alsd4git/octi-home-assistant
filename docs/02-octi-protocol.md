@@ -1,6 +1,15 @@
 # Octi protocol notes
 
-These notes describe what the integration needs today. They are derived from the Octi web client, the Octi server and the upstream interop documentation. The upstream maintainer has said that a fuller protocol document is planned, so implementation should keep the assumptions isolated and fixture-tested.
+These notes describe the Home Assistant-specific choices made on top of the [upstream Octi
+protocol reference](https://github.com/d4rken-org/octi/tree/main/docs/protocol). The upstream
+reference is the canonical source for the wire contract; these notes keep only the assumptions and
+policies that matter to this integration.
+
+The current upstream reference records the Android client at
+`8aeacf4c7e5641716c33a6fd77c54ba73ea45fd7` and the sync server at
+`7e813e2b7d198daae30bdb3cc17e5544ab9b3c22`. Re-check those revisions when changing protocol
+code, because HTTP and WebSocket behavior is documented prose while the published crypto vectors
+are machine-checked.
 
 ## Linking payload
 
@@ -46,6 +55,11 @@ The Home Assistant integration should generate one stable UUID for its linked Oc
 
 The linking flow joins an account using the share code (`POST /v1/account`). After authentication, `GET /v1/devices` returns the linked devices. The integration should treat the server response as authoritative and use stable Octi device IDs as Home Assistant identifiers.
 
+The Octi account is the sharing boundary: the protocol does not provide per-device or per-module
+permissions. Every authenticated device can read peer documents, and the server does not enforce a
+read-only or write-only role. This integration therefore exposes peer data read-only and writes
+only its own encrypted `MetaInfo` slot.
+
 ## Module reads
 
 The relevant read endpoint is:
@@ -55,6 +69,10 @@ GET /v1/module/{moduleId}?device-id={targetDeviceId}
 ```
 
 The response body is an encrypted payload. `204 No Content` means that no current value is available. `ETag` and `X-Modified-At` can be used for conditional refreshes and diagnostics.
+
+The server uses `404` for both an unknown authenticated caller and an unknown target device. The
+integration treats `404` from device discovery as an authentication failure (so Home Assistant can
+offer reauthentication), while an optional module `404` only invalidates that module's cached value.
 
 Initial module IDs:
 
@@ -86,7 +104,10 @@ The authenticated endpoint is `/v1/ws`. The server sends an event envelope like:
 }
 ```
 
-The integration does not need to trust event contents as state. An event should mark the affected module stale and trigger a normal authenticated GET. Reconnect with bounded exponential backoff, and retain a periodic safety refresh in case an event is missed.
+The integration does not need to trust event contents as state. An event should mark the affected
+module stale and trigger a normal authenticated GET. WebSocket delivery is best effort: after every
+disconnect, the integration performs a full HTTP reconciliation before reconnecting, then keeps the
+periodic five-minute safety refresh in case a notification was dropped while the socket was up.
 
 ## Device metadata
 
@@ -96,4 +117,5 @@ The linked Home Assistant client appears in Octi device lists. Send the clear la
 
 - [Octi web API client](https://github.com/d4rken-org/octi-web/blob/main/src/protocol/octi-api.ts)
 - [Octi linking data](https://github.com/d4rken-org/octi-web/blob/main/src/linking/linking-data.ts)
+- [Octi protocol reference](https://github.com/d4rken-org/octi/tree/main/docs/protocol)
 - [Octi issue #370 and maintainer reply](https://github.com/d4rken-org/octi/issues/370#issuecomment-5278482391)

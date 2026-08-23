@@ -14,7 +14,8 @@ The first milestone is a read-mostly integration that can:
 - local decryption of the supported Octi payload encryption modes;
 - read-only power, Wi-Fi, connectivity and device metadata entities;
 - optional clipboard and installed-app count diagnostic entities when Octi exposes those modules; they are disabled by default because their contents can be sensitive;
-- authenticated WebSocket refreshes with conditional HTTP polling as a safety net;
+- authenticated WebSocket refreshes, with a full HTTP reconciliation after disconnects and
+  conditional polling as a safety net;
 - one Home Assistant device per linked Octi device, with the local Home Assistant client represented as a service device;
 - dynamic discovery of devices that appear after the initial setup;
 - a redacted Home Assistant diagnostics endpoint for troubleshooting.
@@ -117,7 +118,7 @@ The repository also includes GitHub Actions for Hassfest and HACS validation in 
 - [Testing with Home Assistant Docker](docs/08-testing-on-home-assistant-docker.md)
 - [Architecture decision: separate repository](docs/decisions/0001-separate-repository.md)
 
-Protocol notes are working documentation derived from the current Octi sources, server behaviour and the maintainer discussion in [octi#370](https://github.com/d4rken-org/octi/issues/370#issuecomment-5278482391). They are not a replacement for an upstream protocol specification.
+Protocol notes document the Home Assistant-specific decisions on top of the [upstream Octi protocol reference](https://github.com/d4rken-org/octi/tree/main/docs/protocol), with the maintainer discussion in [octi#370](https://github.com/d4rken-org/octi/issues/370#issuecomment-5278482391) kept as historical context.
 
 ## Branding
 

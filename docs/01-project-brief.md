@@ -19,7 +19,8 @@ The first release should be read-mostly and intentionally narrow:
 3. It discovers linked Octi devices and reads the core power, Wi-Fi, connectivity and metadata modules.
 4. It decrypts both account keyset modes covered by the upstream fixtures.
 5. It listens to `/v1/ws` and performs a debounced refresh for `module_changed` events.
-6. It falls back to conditional HTTP requests on reconnect and at a conservative interval.
+6. It performs a full HTTP reconciliation after WebSocket disconnects and at a conservative
+   periodic interval.
 7. It exposes optional clipboard and installed-app count diagnostics when those modules are available.
 
 ## Non-goals for the MVP

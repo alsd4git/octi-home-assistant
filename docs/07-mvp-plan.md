@@ -21,7 +21,7 @@ The work was deliberately split into slices that could be reviewed and tested wi
 
 - **Done:** Add an async HTTP client with timeouts, ETags and typed errors.
 - **Done:** Add authenticated WebSocket parsing for `module_changed` events.
-- **Done:** Add reconnect/backoff and a bounded periodic refresh fallback.
+- **Done:** Add reconnect/backoff, full HTTP reconciliation after disconnects and a bounded periodic refresh fallback.
 - **Done for pure protocol paths:** Test `204`, `304`, auth failures, malformed events and reconnects.
 
 ## Phase 3 — Home Assistant integration

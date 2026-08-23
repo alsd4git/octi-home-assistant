@@ -40,7 +40,7 @@ Use a `DataUpdateCoordinator` (or the equivalent supported by the chosen Home As
 - keep per-device/per-module cached values and modification times;
 - mark modules stale when a WebSocket event arrives;
 - debounce bursts of events;
-- reconnect the WebSocket with bounded backoff;
+- reconcile all devices and modules over HTTP after a WebSocket disconnect, then reconnect with bounded backoff;
 - run periodic conditional refreshes as a safety net;
 - expose a degraded-but-available state when the WebSocket is down but HTTP refresh succeeds.
 
@@ -54,7 +54,7 @@ Entities include battery level, charging state, Wi-Fi SSID/signal, connectivity 
 
 The integration is an Octi account hub (`integration_type: hub`). The local Home Assistant client is represented as a service entry, while linked Android, desktop and browser peers remain normal devices; assigning every peer the Home Assistant `service` entry type would misrepresent physical endpoints. The devices dashboard's `Condizione` column is the registry's disabled state, so `—` means the device is enabled, not that Octi failed to provide an online condition. The last server-observed update is exposed as the `Last update` diagnostic sensor from `lastSeen`.
 
-When an Octi device disappears, its cached module data is removed and its entities become unavailable. Registry cleanup is intentionally manual: remove the stale device from the Home Assistant device page if desired.
+When an Octi device disappears, its cached module data is removed and its entities become unavailable. A `404` from the account-wide device discovery endpoint is treated as revoked credentials and starts Home Assistant reauthentication. Registry cleanup is intentionally manual: remove the stale device from the Home Assistant device page if desired.
 
 ## Writes and diagnostics
 
@@ -69,4 +69,4 @@ There is no general write service in the MVP. The integration publishes only its
 
 ### Refresh and temporary failures
 
-The coordinator performs a five-minute HTTP safety refresh. Authenticated WebSocket `module_changed` events may request an earlier targeted refresh for the affected module, but event-triggered refreshes are coalesced for at least 30 seconds. A successful refresh replaces the snapshot; `304` keeps the affected module value and `204`/optional `404` removes it. Transient transport, server and rate-limit failures keep the last successful snapshot so entities do not flap to `unavailable`. A `429` uses the server's `Retry-After` value, or a conservative 15-minute cooldown when that header is absent. Reloading the config entry is the supported manual refresh operation.
+The coordinator performs a five-minute HTTP safety refresh. Authenticated WebSocket `module_changed` events may request an earlier targeted refresh for the affected module, but event-triggered refreshes are coalesced for at least 30 seconds. A WebSocket disconnect triggers a full HTTP reconciliation before the next connection attempt, so missed best-effort events cannot leave the snapshot stale. A successful refresh replaces the snapshot; `304` keeps the affected module value and `204`/optional `404` removes it. Transient transport, server and rate-limit failures keep the last successful snapshot so entities do not flap to `unavailable`. A `429` uses the server's `Retry-After` value, or a conservative 15-minute cooldown when that header is absent. Reloading the config entry is the supported manual refresh operation.

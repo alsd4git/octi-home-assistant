@@ -79,7 +79,7 @@ In Home Assistant:
 
 The linking payload is sensitive: it contains the account credentials and encryption keyset. Do not paste it into an issue or a shared terminal transcript.
 
-The current integration is read-mostly and exposes power, Wi-Fi, connectivity and metadata sensors. It publishes only its own encrypted `MetaInfo` record; peer state remains read-only. Clipboard and installed-app count entities are added only when the corresponding optional Octi modules return data, and they are disabled by default because their values can be sensitive. It joins the Octi account as a separate Home Assistant device and attempts an authenticated WebSocket connection, with HTTP refresh as a fallback. The **Sync now** button requests an immediate refresh.
+The current integration is read-mostly and exposes power, Wi-Fi, connectivity and metadata sensors. It publishes only its own encrypted `MetaInfo` record; peer state remains read-only. Clipboard and installed-app count entities are added only when the corresponding optional Octi modules return data, and they are disabled by default because their values can be sensitive. It joins the Octi account as a separate Home Assistant device and attempts an authenticated WebSocket connection; after a disconnect it reconciles all devices and modules over HTTP before reconnecting, with the periodic refresh as a further safety net. The **Sync now** button requests an immediate refresh.
 
 ## 5. Collect useful diagnostics
 
