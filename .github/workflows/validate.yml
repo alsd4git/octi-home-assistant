@@ -15,9 +15,9 @@ jobs:
       contents: read
     steps:
       - name: Check out repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v7
       - name: Validate with Hassfest
-        uses: home-assistant/actions/hassfest@a7c616ce81ccda50150bf1595786c71b1883fabb # master
+        uses: home-assistant/actions/hassfest@master
 
   hacs:
     name: HACS
@@ -26,9 +26,9 @@ jobs:
       contents: read
     steps:
       - name: Check out repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v7
       - name: Validate with HACS
-        uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa # main
+        uses: hacs/action@main
         with:
           category: integration
           comment: false
@@ -41,9 +41,9 @@ jobs:
       contents: read
     steps:
       - name: Check out repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Install uv
-        run: python -m pip install --disable-pip-version-check uv==0.9.26
+        uses: actions/checkout@v7
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10
       - name: Run format, lint, unit and Home Assistant tests
         run: |
           uv sync --locked
@@ -70,9 +70,9 @@ jobs:
       contents: read
     steps:
       - name: Check out repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Install uv
-        run: python -m pip install --disable-pip-version-check uv==0.9.26
+        uses: actions/checkout@v7
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10
       - name: Run Home Assistant test suite
         run: >-
           uv run --no-project
