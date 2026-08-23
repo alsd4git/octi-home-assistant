@@ -1,6 +1,6 @@
 [project]
 name = "octi-home-assistant"
-version = "0.1.0"
+version = "0.1.2"
 description = "Community Home Assistant integration for Octi"
 requires-python = ">=3.13.2"
 dependencies = [

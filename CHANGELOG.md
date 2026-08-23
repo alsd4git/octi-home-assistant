@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-08-23
+
+### Fixed
+
+- Reconcile all devices and modules over HTTP after every WebSocket disconnect.
+- Treat an unknown discovery caller as a reauthentication condition instead of keeping stale data.
+
+### Documentation
+
+- Align the protocol notes with the canonical upstream Octi reference and document the updated
+  reconnect and authentication behavior.
+
 ## [0.1.1] - 2026-08-23
 
 ### Added
@@ -49,6 +61,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Bounded HTTP response and gzip decompression sizes.
 - Redirect rejection, diagnostics redaction and opt-in handling for sensitive entities.
 
-[Unreleased]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/alsd4git/octi-home-assistant/releases/tag/v0.1.0
