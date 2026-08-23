@@ -74,6 +74,10 @@ list or account credentials.
 
 ![Octi for Home Assistant device page](docs/images/home-assistant-device.png)
 
+This cropped device view shows an individual Android device and the sensors exposed by Octi.
+
+![Octi for Home Assistant Android device card](docs/images/home-assistant-device-card.png)
+
 ### Removing a device
 
 If a device is removed from the Octi account, its Home Assistant entities become unavailable. The Home Assistant device-registry entry is intentionally not deleted automatically; remove it manually from the Octi device page under **Settings → Devices & services** when you want to clean it up.
