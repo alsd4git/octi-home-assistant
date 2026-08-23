@@ -7,6 +7,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-23
+
+### Added
+
+- Add the permitted official Octi service icon for HACS and Home Assistant branding.
+
+### Changed
+
+- Advertise the Home Assistant client as the generic Octi `SERVER` device type.
+- Use **Octi for Home Assistant** as the public display name while keeping the `octi` domain
+  unchanged for existing installations.
+
+### Compatibility
+
+- Octi clients older than `v1.1.0-rc0` may render the Meta tile for the `SERVER` peer as empty and
+  log a decode warning; other modules continue to work.
+
+## [0.1.0] - 2026-08-21
+
 ### Added
 
 - Home Assistant Config Flow using an Octi linking payload, including reauthentication and
@@ -24,13 +43,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Register sensor entities only after their backing module fields have been observed, while keeping
   dynamic discovery for fields that appear later.
-- Advertise the Home Assistant client as the generic Octi `SERVER` device type and use the explicit
-  display name **Octi for Home Assistant**.
-- Add the permitted Octi service icon for HACS/Home Assistant branding.
 
 ### Security
 
 - Bounded HTTP response and gzip decompression sizes.
 - Redirect rejection, diagnostics redaction and opt-in handling for sensitive entities.
 
-[Unreleased]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/alsd4git/octi-home-assistant/releases/tag/v0.1.0
