@@ -47,5 +47,6 @@ The work was deliberately split into slices that could be reviewed and tested wi
 
 ## Upstream follow-ups before calling the integration polished
 
-- Ask the Octi web maintainer whether `home_assistant` should become a first-class platform (or whether a web-compatible alias is preferred) and whether a dedicated Home Assistant `deviceType` is warranted. Until then, the integration advertises `home_assistant` honestly and publishes `MetaInfo.deviceType = UNKNOWN` rather than masquerading as a browser or desktop.
-- Ask for permission to use the official Octi icon and add it only after the licensing/branding decision is recorded.
+- **Done:** Confirm with the Octi maintainer that `home_assistant` is the correct free-form platform value. The integration keeps it instead of masquerading as a browser or desktop client.
+- **Done:** Adopt the generic `MetaInfo.deviceType = SERVER` value for the Home Assistant client, with the older-client compatibility caveat documented in the README.
+- **Done:** Record permission to use the official Octi icon for the HACS/Home Assistant service-brand entry. The asset is not used as the community integration's own logo or wordmark.

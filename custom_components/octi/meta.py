@@ -6,7 +6,7 @@ from typing import Any
 
 from .const import OCTI_LABEL, OCTI_VERSION
 
-META_DEVICE_TYPE_UNKNOWN = "UNKNOWN"
+META_DEVICE_TYPE_SERVER = "SERVER"
 
 
 def build_self_meta_info(device_id: str, home_assistant_version: str) -> dict[str, Any]:
@@ -18,7 +18,7 @@ def build_self_meta_info(device_id: str, home_assistant_version: str) -> dict[st
         "octiGitSha": "community",
         "deviceManufacturer": "Home Assistant",
         "deviceName": "Home Assistant",
-        "deviceType": META_DEVICE_TYPE_UNKNOWN,
+        "deviceType": META_DEVICE_TYPE_SERVER,
         "osType": "home_assistant",
         "osVersionName": home_assistant_version,
     }

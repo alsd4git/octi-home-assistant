@@ -53,7 +53,7 @@ def test_decrypt_module_payload(keyset_type: str, keyset: bytes, ciphertext: byt
     [(KEYSET_GCM_SIV, GCM_KEYSET), (KEYSET_SIV, SIV_KEYSET)],
 )
 def test_encrypt_module_payload_round_trips(keyset_type: str, keyset: bytes) -> None:
-    value = {"deviceType": "UNKNOWN", "deviceName": "Home Assistant"}
+    value = {"deviceType": "SERVER", "deviceName": "Home Assistant"}
     ciphertext = encrypt_module_payload(
         value,
         keyset=keyset,

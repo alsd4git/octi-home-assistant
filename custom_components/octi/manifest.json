@@ -1,11 +1,11 @@
 {
   "domain": "octi",
-  "name": "Octi",
+  "name": "Octi for Home Assistant",
   "codeowners": ["@alsd4git"],
   "config_flow": true,
   "documentation": "https://github.com/alsd4git/octi-home-assistant",
   "integration_type": "hub",
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/alsd4git/octi-home-assistant/issues",
-  "version": "0.1.0"
+  "version": "0.1.1"
 }

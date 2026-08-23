@@ -24,6 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Register sensor entities only after their backing module fields have been observed, while keeping
   dynamic discovery for fields that appear later.
+- Advertise the Home Assistant client as the generic Octi `SERVER` device type and use the explicit
+  display name **Octi for Home Assistant**.
+- Add the permitted Octi service icon for HACS/Home Assistant branding.
 
 ### Security
 

@@ -29,7 +29,7 @@ MODULE_APPS: Final = "eu.darken.octi.module.core.apps"
 OPTIONAL_MODULES: Final = frozenset({MODULE_META, MODULE_CLIPBOARD, MODULE_APPS})
 
 OCTI_PLATFORM: Final = "home_assistant"
-OCTI_VERSION: Final = "0.1.0"
+OCTI_VERSION: Final = "0.1.1"
 OCTI_LABEL: Final = "Home Assistant"
 
 DEFAULT_REFRESH_INTERVAL_SECONDS: Final = 300

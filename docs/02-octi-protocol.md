@@ -90,7 +90,7 @@ The integration does not need to trust event contents as state. An event should 
 
 ## Device metadata
 
-The linked Home Assistant client appears in Octi device lists. Send a clear label such as `Home Assistant` and a platform value that identifies this integration. The metadata module is read and exposed as diagnostic state; publishing encrypted metadata or other writes remains out of scope.
+The linked Home Assistant client appears in Octi device lists. Send the clear label `Home Assistant` and the free-form platform value `home_assistant`; do not substitute `web`. The integration publishes `MetaInfo.deviceType = SERVER`, the generic type for server, NAS and headless container clients. Older clients may not decode this newer type, so the compatibility caveat is documented in the README. The metadata module is read and exposed as diagnostic state; publishing the small encrypted self-description is the only write performed by this integration.
 
 ## Source references
 

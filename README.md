@@ -21,6 +21,11 @@ The first milestone is a read-mostly integration that can:
 
 The integration does not write peer state, transfer files or synchronize encrypted blobs. It publishes only a small encrypted `MetaInfo` record describing the Home Assistant client itself. Clipboard data is sensitive; installed-app data is reduced to a count and the full inventory is not persisted in Home Assistant state.
 
+The linked Home Assistant client advertises `Octi-Device-Platform: home_assistant` and
+`MetaInfo.deviceType: SERVER`. This is the generic Octi type for server, NAS and headless
+container clients. Octi clients older than `v1.1.0-rc0` may render the Meta tile for this
+peer as empty and log a decode warning; the other modules continue to work.
+
 ## Installation
 
 ### HACS custom repository
@@ -104,7 +109,14 @@ Protocol notes are working documentation derived from the current Octi sources, 
 
 ## Branding
 
-The official Octi artwork is not included yet. The Octi project explicitly excludes its icons, logos, mascots and other assets from its GPL code license, so an official icon will be added only after written permission from the maintainer.
+The official Octi icon is included for the HACS/Home Assistant brand entry with permission
+from the Octi maintainer ([octi#370](https://github.com/d4rken-org/octi/issues/370#issuecomment-5385059776)).
+It identifies the Octi service being integrated; it is not the logo or wordmark of this
+community integration, which is independent from the Octi project.
+
+The source asset is [`icon_512.png`](https://github.com/d4rken-org/octi/blob/bc9a2264994017b41ee2ce84d61a5337a296a878/fastlane/metadata/android/en-US/images/icon_512.png);
+the repository keeps the original resolution as `icon@2x.png` and a 256px `icon.png`
+for Home Assistant and HACS.
 
 ## License
 

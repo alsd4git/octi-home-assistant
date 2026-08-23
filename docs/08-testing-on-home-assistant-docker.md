@@ -102,4 +102,5 @@ Do not install extra native build tools or a separate Tink package manually in t
 
 - The minimum tested baseline is Home Assistant 2026.2.3 with Python 3.13; CI also covers Home Assistant 2026.8.2 with Python 3.14. Intermediate 2026.x releases are not individually tested.
 - Dynamic discovery of devices added after the initial setup is implemented. If a device is removed from Octi, its entities become unavailable; remove the stale device manually from the Home Assistant device page when desired.
-- HACS metadata and CI are present. The brand asset/icon is intentionally deferred until after the MVP and permission review; default-catalog publication also waits for a public repository, release and brand review.
+- HACS metadata, the permitted Octi service icon and CI are present. Default-catalog publication still
+  waits for the remaining HACS brand/release review; the integration remains clearly community-maintained.
