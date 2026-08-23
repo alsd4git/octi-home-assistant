@@ -189,8 +189,19 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 _LOGGER.warning("Octi WebSocket disconnected; retrying")
             except Exception:
                 _LOGGER.exception("Unexpected Octi WebSocket failure")
+            await self._async_reconcile_after_websocket_disconnect()
             await asyncio.sleep(delay)
             delay = min(delay * 2, WS_RECONNECT_MAX_SECONDS)
+
+    async def _async_reconcile_after_websocket_disconnect(self) -> None:
+        """Reconcile all modules before reconnecting after a dropped socket."""
+        self._pending_event_modules = None
+        try:
+            await self.async_request_refresh()
+        except asyncio.CancelledError:
+            raise
+        except Exception as err:
+            _LOGGER.debug("Octi reconciliation after WebSocket disconnect failed: %s", err)
 
     async def _async_request_event_refresh(self, event: dict[str, Any]) -> None:
         """Coalesce event bursts so one WebSocket burst cannot cause request floods."""

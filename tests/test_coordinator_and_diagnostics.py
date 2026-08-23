@@ -201,6 +201,20 @@ async def test_websocket_refresh_requests_are_coalesced(hass) -> None:
 
 
 @pytest.mark.asyncio
+async def test_websocket_disconnect_triggers_full_reconciliation(hass) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    coordinator = OctiCoordinator(hass, _SequenceClient(), entry)
+    coordinator.async_request_refresh = AsyncMock()
+    coordinator._pending_event_modules = {("device-1", MODULE_POWER)}
+
+    await coordinator._async_reconcile_after_websocket_disconnect()
+
+    assert coordinator._pending_event_modules is None
+    coordinator.async_request_refresh.assert_awaited_once()
+
+
+@pytest.mark.asyncio
 async def test_event_refresh_fetches_only_changed_modules(hass) -> None:
     entry = _entry()
     entry.add_to_hass(hass)

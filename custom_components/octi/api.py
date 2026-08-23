@@ -119,7 +119,11 @@ class OctiApiClient:
 
     async def async_get_devices(self) -> list[dict[str, Any]]:
         """Fetch the linked device list."""
-        response = await self._request("GET", f"{self.server}/v1/devices")
+        response = await self._request(
+            "GET",
+            f"{self.server}/v1/devices",
+            unknown_caller_is_auth=True,
+        )
         payload = await _json_response(response)
         if not isinstance(payload, dict) or not isinstance(payload.get("devices"), list):
             raise OctiApiError("Octi returned an invalid device list")
@@ -210,6 +214,7 @@ class OctiApiClient:
         headers: dict[str, str] | None = None,
         auth: bool = True,
         allow_missing: bool = False,
+        unknown_caller_is_auth: bool = False,
         data: bytes | None = None,
     ) -> ClientResponse | None:
         request_headers = headers or (self._headers() if auth else {})
@@ -227,9 +232,13 @@ class OctiApiClient:
         if response.status in {401, 403}:
             response.release()
             raise OctiAuthenticationError("Octi credentials were rejected")
-        if response.status == 404 and allow_missing:
-            response.release()
-            return None
+        if response.status == 404:
+            if unknown_caller_is_auth:
+                response.release()
+                raise OctiAuthenticationError("Octi device is no longer linked")
+            if allow_missing:
+                response.release()
+                return None
         if response.status == 429:
             retry_after = _parse_retry_after(response.headers.get("Retry-After"))
             response.release()

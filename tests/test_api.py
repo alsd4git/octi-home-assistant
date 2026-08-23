@@ -92,6 +92,12 @@ async def test_api_authentication_error_is_typed() -> None:
 
 
 @pytest.mark.asyncio
+async def test_unknown_caller_on_device_discovery_requires_reauthentication() -> None:
+    with pytest.raises(OctiAuthenticationError):
+        await _client(_Response(404)).async_get_devices()
+
+
+@pytest.mark.asyncio
 async def test_api_rate_limit_error_preserves_retry_after() -> None:
     response = _Response(429, headers={"Retry-After": "600"})
 
