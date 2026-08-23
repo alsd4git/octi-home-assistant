@@ -1,6 +1,7 @@
 # Testing the integration with Home Assistant Docker
 
-This project is not published through HACS yet. Install it as a local custom integration while developing.
+The integration is available through HACS as a custom repository. Install it as a local custom
+integration when developing or testing unreleased changes.
 
 ## 1. Find the Home Assistant config volume
 

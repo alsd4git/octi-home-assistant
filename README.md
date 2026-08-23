@@ -66,6 +66,14 @@ The integration performs a periodic safety refresh every five minutes. WebSocket
 
 The **Sync now** button requests an immediate refresh of all devices and modules. It does not enable clipboard/apps or perform any peer write action.
 
+## Screenshot
+
+This redacted Home Assistant 2026.8.2 view shows the Octi service device, diagnostic values,
+the `SERVER` device type and the Octi service icon. It does not include the linked peer-device
+list or account credentials.
+
+![Octi for Home Assistant device page](docs/images/home-assistant-device.png)
+
 ### Removing a device
 
 If a device is removed from the Octi account, its Home Assistant entities become unavailable. The Home Assistant device-registry entry is intentionally not deleted automatically; remove it manually from the Octi device page under **Settings → Devices & services** when you want to clean it up.
