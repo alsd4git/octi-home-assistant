@@ -1,5 +1,9 @@
 # Octi for Home Assistant
 
+[![Validate](https://github.com/alsd4git/octi-home-assistant/actions/workflows/validate.yml/badge.svg)](https://github.com/alsd4git/octi-home-assistant/actions/workflows/validate.yml)
+[![Latest release](https://img.shields.io/github/v/release/alsd4git/octi-home-assistant)](https://github.com/alsd4git/octi-home-assistant/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+
 Community-maintained Home Assistant integration for [Octi](https://github.com/d4rken-org/octi), the end-to-end encrypted device synchronisation ecosystem by d4rken-org.
 
 This project is independent from the Octi Android and web clients and is not an official Octi or Home Assistant integration.
@@ -89,6 +93,7 @@ The local development checks use `uv`:
 
 ```bash
 uv sync
+uv run ruff format --check .
 uv run ruff check .
 uv run pytest -q
 uv run python scripts/verify_interop_fixtures.py
