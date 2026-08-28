@@ -1,6 +1,6 @@
 # Octi for Home Assistant
 
-[![Validate](https://github.com/alsd4git/octi-home-assistant/actions/workflows/validate.yml/badge.svg)](https://github.com/alsd4git/octi-home-assistant/actions/workflows/validate.yml)
+[![CI](https://github.com/alsd4git/octi-home-assistant/actions/workflows/validate.yml/badge.svg)](https://github.com/alsd4git/octi-home-assistant/actions/workflows/validate.yml)
 [![Latest release](https://img.shields.io/github/v/release/alsd4git/octi-home-assistant)](https://github.com/alsd4git/octi-home-assistant/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 
