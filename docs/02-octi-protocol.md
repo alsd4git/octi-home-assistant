@@ -60,6 +60,13 @@ permissions. Every authenticated device can read peer documents, and the server 
 read-only or write-only role. This integration therefore exposes peer data read-only and writes
 only its own encrypted `MetaInfo` slot.
 
+The server may remove quiet device registrations and module slots through its garbage-collection
+jobs. The stock thresholds are 90 days, but deployments can change them and the storage endpoint
+does not report those values. The integration's periodic refresh keeps its own device active while
+Home Assistant is running. If the registration expires while Home Assistant is offline, discovery
+returns `404` and the integration asks Home Assistant to reauthenticate; the user may need to link
+the device again.
+
 ## Module reads
 
 The relevant read endpoint is:
@@ -108,6 +115,9 @@ The integration does not need to trust event contents as state. An event should 
 module stale and trigger a normal authenticated GET. WebSocket delivery is best effort: after every
 disconnect, the integration performs a full HTTP reconciliation before reconnecting, then keeps the
 periodic five-minute safety refresh in case a notification was dropped while the socket was up.
+The server closes a session with `1001` when it is replaced, `1013` for retryable rate or connection
+limits, and `1008` for authentication or policy failures. The integration sends no application
+frames and keeps HTTP reconciliation as the source of truth when a close carries no retry metadata.
 
 ## Device metadata
 
