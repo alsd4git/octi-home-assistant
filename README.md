@@ -99,11 +99,11 @@ uv run pytest -q
 uv run python scripts/verify_interop_fixtures.py
 ```
 
-The Home Assistant test matrix covers 2026.2.3 with Python 3.13 and 2026.8.2 with Python 3.14. The `pytest-homeassistant-custom-component` package tracks an exact Home Assistant release; intermediate 2026.x releases are expected to work from the baseline but are not individually claimed as tested. To run the newer matrix entry locally:
+The Home Assistant test matrix covers 2026.2.3 with Python 3.13 and 2026.9.1 with Python 3.14. The `pytest-homeassistant-custom-component` package tracks an exact Home Assistant release; intermediate 2026.x releases are expected to work from the baseline but are not individually claimed as tested. To run the newer matrix entry locally:
 
 ```bash
 uv run --no-project --python 3.14 \
-  --with pytest-homeassistant-custom-component==0.13.356 \
+  --with pytest-homeassistant-custom-component==0.13.364 \
   pytest -q
 ```
 

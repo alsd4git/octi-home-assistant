@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Extend the Home Assistant CI matrix to cover 2026.9.1 with Python 3.14.
+
 ## [0.1.2] - 2026-08-23
 
 ### Fixed

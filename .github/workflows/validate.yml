@@ -62,9 +62,9 @@ jobs:
           - homeassistant: "2026.2.3"
             python: "3.13"
             test_package: "0.13.316"
-          - homeassistant: "2026.8.2"
+          - homeassistant: "2026.9.1"
             python: "3.14"
-            test_package: "0.13.356"
+            test_package: "0.13.364"
     container: python:${{ matrix.python }}
     permissions:
       contents: read
