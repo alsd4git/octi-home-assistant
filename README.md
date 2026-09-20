@@ -35,7 +35,12 @@ peer as empty and log a decode warning; the other modules continue to work.
 
 ### HACS custom repository
 
-The repository is public and can be installed through HACS as a custom repository. In HACS:
+The repository is public and can be installed through HACS as a custom repository. Use the button
+below to open the custom-repository flow in your Home Assistant instance:
+
+[![Open your Home Assistant instance and open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?category=integration&repository=octi-home-assistant&owner=alsd4git)
+
+If the button is not available, add it manually in HACS:
 
 1. Open HACS and select the three-dot menu in the top-right corner.
 2. Select **Custom repositories**.
