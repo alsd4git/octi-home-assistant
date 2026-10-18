@@ -7,9 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-19
+
+### Fixed
+
+- Commit module ETags only after a complete refresh so a later request failure cannot leave
+  stale sensor values paired with newer HTTP cache validators.
+- Align the advertised Octi client version with the integration release and verify version
+  consistency in tests.
+
 ### Changed
 
-- Extend the Home Assistant CI matrix to cover 2026.9.1 with Python 3.14.
+- Extend the Home Assistant CI matrix to cover 2026.10.2 with Python 3.14.
 
 ## [0.1.2] - 2026-08-23
 
@@ -65,7 +74,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Bounded HTTP response and gzip decompression sizes.
 - Redirect rejection, diagnostics redaction and opt-in handling for sensitive entities.
 
-[Unreleased]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/alsd4git/octi-home-assistant/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/alsd4git/octi-home-assistant/releases/tag/v0.1.0
