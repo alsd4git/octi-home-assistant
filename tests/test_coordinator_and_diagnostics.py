@@ -101,6 +101,42 @@ async def test_coordinator_clears_missing_values_and_preserves_304(hass) -> None
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("failure", [OctiApiError("temporary failure"), OctiRateLimitError(1)])
+async def test_partial_refresh_failure_preserves_etags_and_recovers(hass, failure) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    client = _SequenceClient()
+    coordinator = OctiCoordinator(hass, client, entry)
+    previous = {
+        "devices": [{"id": "device-1"}],
+        "modules": {"device-1": {MODULE_POWER: {"status": "DISCHARGING"}}},
+    }
+    coordinator.data = previous
+    coordinator._etags = {("device-1", MODULE_POWER): '"power-v1"'}
+    client.async_get_module = AsyncMock(
+        side_effect=[OctiModuleValue({"status": "CHARGING"}, '"power-v2"', None), failure]
+    )
+
+    assert await coordinator._async_update_data() is previous
+    assert previous["modules"]["device-1"][MODULE_POWER] == {"status": "DISCHARGING"}
+    assert coordinator._etags == {("device-1", MODULE_POWER): '"power-v1"'}
+
+    coordinator._rate_limit_until = 0
+
+    async def get_module(device_id, module_id, *, etag=None, **kwargs):
+        if module_id != MODULE_POWER:
+            return None
+        assert etag == '"power-v1"'
+        return OctiModuleValue({"status": "CHARGING"}, '"power-v2"', None)
+
+    client.async_get_module = AsyncMock(side_effect=get_module)
+    recovered = await coordinator._async_update_data()
+    assert recovered["modules"]["device-1"][MODULE_POWER] == {"status": "CHARGING"}
+    assert coordinator._etags == {("device-1", MODULE_POWER): '"power-v2"'}
+    await coordinator.async_shutdown()
+
+
+@pytest.mark.asyncio
 async def test_websocket_listener_is_started_as_background_task(hass) -> None:
     entry = _entry()
     entry.add_to_hass(hass)

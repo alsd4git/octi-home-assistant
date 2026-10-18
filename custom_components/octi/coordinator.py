@@ -87,7 +87,7 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             }
             event_modules = self._pending_event_modules
             self._pending_event_modules = set()
-            self._etags = {
+            etags = {
                 (device_id, module_id): etag
                 for (device_id, module_id), etag in self._etags.items()
                 if device_id in device_ids
@@ -102,18 +102,20 @@ class OctiCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     result = await self.client.async_get_module(
                         device_id,
                         module_id,
-                        etag=self._etags.get((device_id, module_id)),
+                        etag=etags.get((device_id, module_id)),
                         optional=module_id in OPTIONAL_MODULES,
                     )
                     if result is None:
-                        self._etags.pop((device_id, module_id), None)
+                        etags.pop((device_id, module_id), None)
                         data["modules"].setdefault(device_id, {}).pop(module_id, None)
                         continue
-                    self._etags[(device_id, module_id)] = result.etag or self._etags.get(
+                    etags[(device_id, module_id)] = result.etag or etags.get(
                         (device_id, module_id), ""
                     )
                     if not result.not_modified:
                         data["modules"].setdefault(device_id, {})[module_id] = result.value
+            # Commit validators only when the matching snapshot is complete.
+            self._etags = etags
             self._rate_limit_until = 0.0
             return data
         except OctiAuthenticationError as err:
