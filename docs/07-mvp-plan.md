@@ -1,6 +1,6 @@
 # MVP implementation plan
 
-The work was deliberately split into slices that could be reviewed and tested without a complete Home Assistant integration. The current repository contains the first read-mostly MVP; it publishes only the linked Home Assistant client's encrypted `MetaInfo`, while the remaining items below are hardening or release work.
+The read-mostly MVP is implemented and publicly released as [v0.1.3](https://github.com/alsd4git/octi-home-assistant/releases/tag/v0.1.3). This plan records the completed work and remaining follow-ups.
 
 ## Phase 0 — repository and protocol lock
 
@@ -35,9 +35,9 @@ The work was deliberately split into slices that could be reviewed and tested wi
 ## Phase 4 — release hardening
 
 - **Done:** Add the validation workflow; Hassfest, Ruff, Home Assistant tests and fixture verification pass locally. CI tests both Home Assistant 2026.2.3 and 2026.10.2; HACS validation runs with the repository context in GitHub Actions.
-- **Pending:** Test a clean custom-HACS install and an upgrade from the previous release in a public repository.
+- **Done:** Verify a clean installation from the HACS custom repository and an upgrade from the previous release on the maintainer's Home Assistant instance.
 - **Done:** Document revocation/relinking and known limitations.
-- Create the first GitHub release and ask the Octi maintainer to link the integration from ecosystem documentation once interop tests pass.
+- **Done:** Publish the integration releases and have the Octi maintainer list the integration as a HACS-installable community client in the [Octi README](https://github.com/d4rken-org/octi#community-clients-built-and-maintained-by-others).
 
 ## Later candidates
 

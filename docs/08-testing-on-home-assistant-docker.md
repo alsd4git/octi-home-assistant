@@ -101,7 +101,7 @@ Do not install extra native build tools or a separate Tink package manually in t
 
 ## Current limitations
 
-- The minimum tested baseline is Home Assistant 2026.2.3 with Python 3.13; CI also covers Home Assistant 2026.10.2 with Python 3.14. Intermediate 2026.x releases are not individually tested.
+- The minimum tested baseline is Home Assistant 2026.2.3 with Python 3.13; CI also covers Home Assistant 2026.10.2 with Python 3.14. Other Home Assistant versions are not individually tested, so compatibility with them is unverified.
 - Dynamic discovery of devices added after the initial setup is implemented. If a device is removed from Octi, its entities become unavailable; remove the stale device manually from the Home Assistant device page when desired.
-- HACS metadata, the permitted Octi service icon and CI are present. Default-catalog publication still
-  waits for the remaining HACS brand/release review; the integration remains clearly community-maintained.
+- Installation from the HACS custom repository and an upgrade from the previous release have been
+  verified. The integration is not in the HACS default catalog, and no submission has been made.

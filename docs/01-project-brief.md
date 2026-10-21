@@ -12,7 +12,7 @@ The Octi maintainer has indicated that a separate community repository with HACS
 
 ## MVP scope
 
-The first release should be read-mostly and intentionally narrow:
+The initial release is read-mostly and intentionally narrow:
 
 1. A config flow accepts the Octi linking payload and validates its server, share code and keyset.
 2. The integration joins the account with a stable Home Assistant device identity.
@@ -37,11 +37,11 @@ The first release should be read-mostly and intentionally narrow:
 - Interoperability tests pass against the pinned upstream vectors for every supported encryption mode.
 - A temporary network failure does not create duplicate entities or lose the config entry.
 - Secrets are stored using Home Assistant's config-entry machinery and never appear in normal logs.
-- HACS validation and Home Assistant's Hassfest checks pass before the first release.
+- HACS validation and Home Assistant's Hassfest checks pass in CI.
 - The README clearly labels the integration as community-maintained and read-mostly, with the self-`MetaInfo` exception.
 
 ## Current operational decisions
 
 - Devices removed from the Octi account are not deleted automatically from the Home Assistant registry. Their entities become unavailable and users remove the registry entry manually when needed.
 
-The current minimum tested baseline is Home Assistant `2026.2.3` with Python `>=3.13.2`. Home Assistant `2026.10.2` is also covered by CI with Python 3.14. Intermediate `2026.x` releases are expected to work from the baseline but are not individually claimed as tested. The integration manifest does not support a minimum-version key, so this policy is documented and enforced through the test matrix.
+The current minimum tested baseline is Home Assistant `2026.2.3` with Python `>=3.13.2`. Home Assistant `2026.10.2` is also covered by CI with Python 3.14. Other Home Assistant versions are not individually tested, so their compatibility has not been verified. The integration manifest does not support a minimum-version key, so this policy is documented and enforced through the test matrix.
