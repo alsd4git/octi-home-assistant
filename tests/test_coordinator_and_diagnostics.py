@@ -3,9 +3,11 @@ from __future__ import annotations
 import asyncio
 import base64
 from collections.abc import Mapping
+from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from homeassistant.components.sensor import SensorDeviceClass
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.octi import OctiRuntimeData
@@ -24,7 +26,7 @@ from custom_components.octi.const import (
 )
 from custom_components.octi.coordinator import OctiCoordinator
 from custom_components.octi.diagnostics import async_get_config_entry_diagnostics
-from custom_components.octi.sensor import _entities_for_device
+from custom_components.octi.sensor import OctiModuleSensor, _entities_for_device
 from custom_components.octi.sensor import async_setup_entry as async_setup_sensor_entry
 
 ENTRY_DATA = {
@@ -367,6 +369,44 @@ async def test_sensor_availability_tracks_removed_devices_and_modules(hass) -> N
     coordinator.async_set_updated_data({"devices": [], "modules": {}})
     await hass.async_block_till_done()
     assert power.available is False
+    await coordinator.async_shutdown()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("field", "suffix"),
+    [
+        ("fullAt", "charge_full_at"),
+        ("emptyAt", "charge_empty_at"),
+        ("fullSince", "charge_full_since"),
+    ],
+)
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("2026-10-31T10:00:00Z", datetime.fromisoformat("2026-10-31T10:00:00+00:00")),
+        ("2026-10-31T11:00:00+01:00", datetime.fromisoformat("2026-10-31T11:00:00+01:00")),
+        ("2026-10-31T10:00:00", None),
+        ("2026-10-31", None),
+        ("not-a-date", None),
+        ("", None),
+        (None, None),
+        (123, None),
+    ],
+)
+async def test_power_timestamp_metadata_and_values(hass, field, suffix, value, expected) -> None:
+    entry = _entry()
+    entry.add_to_hass(hass)
+    coordinator = OctiCoordinator(hass, _SequenceClient(), entry)
+    coordinator.data = {
+        "devices": [{"id": "device-1"}],
+        "modules": {"device-1": {MODULE_POWER: {"chargeIO": {field: value}}}},
+    }
+    entity = OctiModuleSensor(coordinator, "device-1", MODULE_POWER, f"chargeIO.{field}", suffix)
+    assert entity.device_class == SensorDeviceClass.TIMESTAMP
+    assert entity.native_value == expected
+    assert entity.unique_id == f"device-1_{suffix}"
+    assert entity.native_unit_of_measurement is None
     await coordinator.async_shutdown()
 
 
