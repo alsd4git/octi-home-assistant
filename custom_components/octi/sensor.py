@@ -61,6 +61,8 @@ _POWER_FIELDS = (
     ("charge_speed", "Charge speed", "chargeIO.currentNow"),
 )
 
+_POWER_TIMESTAMP_FIELDS = frozenset({"chargeIO.fullAt", "chargeIO.emptyAt", "chargeIO.fullSince"})
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -232,6 +234,8 @@ class OctiModuleSensor(_OctiSensor):
         if field == "battery_percent":
             self._attr_device_class = SensorDeviceClass.BATTERY
             self._attr_native_unit_of_measurement = PERCENTAGE
+        elif field in _POWER_TIMESTAMP_FIELDS:
+            self._attr_device_class = SensorDeviceClass.TIMESTAMP
         elif field == "battery.temp":
             self._attr_native_unit_of_measurement = "°C"
         elif (
@@ -271,7 +275,7 @@ class OctiModuleSensor(_OctiSensor):
             return _charge_speed(value)
         if self._field in {"chargeIO.currentNow", "chargeIO.currentAvg"}:
             return value / 1000 if isinstance(value, (int, float)) else None
-        if self._field in {"chargeIO.fullAt", "chargeIO.emptyAt", "chargeIO.fullSince"}:
+        if self._field in _POWER_TIMESTAMP_FIELDS:
             return _parse_timestamp(value)
         if self._field == "battery.health":
             return _battery_health_label(value)
@@ -417,9 +421,10 @@ def _parse_timestamp(value: Any) -> datetime | None:
     if not isinstance(value, str) or not value:
         return None
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
+    return parsed if parsed.tzinfo is not None and parsed.utcoffset() is not None else None
 
 
 def _charge_speed(value: Any) -> str | None:

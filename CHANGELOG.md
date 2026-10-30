@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Mark charge estimates and full-since sensors as timestamps so Home Assistant
+  displays localized dates. Reject invalid or timezone-free timestamp values
+  without changing entity identifiers.
+
 ## [0.1.3] - 2026-10-19
 
 ### Fixed
