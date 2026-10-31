@@ -11,8 +11,8 @@ real Octi linking payload, account ID, device password, Authorization header, en
 clipboard content, installed-app data or decrypted module payload. Replace sensitive values with
 synthetic examples and remove them from screenshots and logs.
 
-You should receive an acknowledgement within seven days. The report will be assessed privately,
-and any disclosure or release timeline will be coordinated after the impact and remediation are
+Reports are handled on a best-effort basis, without a guaranteed response or remediation time.
+Any disclosure or release timeline will be coordinated after the impact and remediation are
 understood.
 
 ## Supported versions
